@@ -43,7 +43,7 @@ Contact Info: ${formData.contactInfo}
 Message: ${formData.message}
       `;
 
-      const mailtoLink = `mailto:theofficialali_05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
       window.location.href = mailtoLink;
 
       setSubmitStatus('success');
@@ -85,7 +85,7 @@ Message: ${formData.message}
             <i className="fab fa-instagram"></i> Plan via Instagram DM
           </a>
           <a 
-            href="mailto:theofficialali_05@gmail.com?subject=Chill Busan Tours Booking Request" 
+            href="mailto:theofficialali05@gmail.com?subject=Chill Busan Tours Booking Request" 
             className="plan-button email"
           >
             <i className="fas fa-envelope"></i> Plan via Email
@@ -113,9 +113,9 @@ Message: ${formData.message}
               <i className="fab fa-whatsapp"></i>
               <span>+82 010-3973-2052</span>
             </a>
-            <a href="mailto:theofficialali_05@gmail.com">
+            <a href="mailto:theofficialali05@gmail.com">
               <i className="fas fa-envelope"></i>
-              <span>theofficialali_05@gmail.com</span>
+              <span>theofficialali05@gmail.com</span>
             </a>
             <a 
               href="https://maps.app.goo.gl/123" 

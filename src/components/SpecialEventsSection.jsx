@@ -57,7 +57,7 @@ const SpecialEventsSection = () => {
     const subject = `Special Event Inquiry: ${event.title}`;
     const body = `Hello Chill Busan Tours,\n\nI'm interested in booking the ${event.title} package for $${event.price}.\n\nPlease contact me to arrange this special event.\n\nBest regards`;
     
-    const mailtoLink = `mailto:theofficialali_05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoLink;
   };
 

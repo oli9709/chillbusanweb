@@ -147,7 +147,7 @@ const CustomTourBuilder = () => {
     const emailSubject = 'Custom Busan Tour Inquiry';
     const emailBody = `Hello Chill Busan Tours,\n\nI'm interested in booking a custom tour with the following details:\n\n${summary}\n\n${breakdown}\n\nPlease contact me to arrange this tour.\n\nBest regards`;
     
-    const mailtoLink = `mailto:theofficialali_05@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
     
     if (window.confirm('Are you sure you want to send this tour inquiry? You cannot change the tour once sent!')) {
       window.location.href = mailtoLink;

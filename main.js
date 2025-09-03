@@ -900,7 +900,7 @@ Please contact me to discuss this custom tour.
 Thank you!`;
 
         // Open email client
-        const mailtoLink = `mailto:theofficialali_05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         window.open(mailtoLink);
 
         // Show success animation
