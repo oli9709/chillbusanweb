@@ -11,7 +11,6 @@ import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
-import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
@@ -41,11 +40,7 @@ function App() {
             {/* Protected Routes */}
             <Route 
               path="/custom-tour" 
-              element={
-                <ProtectedRoute>
-                  <CustomTourBuilder />
-                </ProtectedRoute>
-              } 
+              element={<CustomTourBuilder />} 
             />
           </Routes>
         </div>
