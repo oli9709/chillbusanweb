@@ -2658,6 +2658,18 @@ textarea {
     }
 }
 
+/* Ensure anchor scroll on mobile doesn't hide section beneath fixed header */
+#custom-tour {
+    scroll-margin-top: 100px;
+}
+
+/* Provide minimum height so section is visibly present on small screens */
+@media (max-width: 768px) {
+    .custom-tour {
+        min-height: 60vh;
+    }
+}
+
 /* Success Animation */
 .success-animation-container {
     position: fixed;
