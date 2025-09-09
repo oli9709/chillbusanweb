@@ -1,5 +1,112 @@
 // Google Maps functionality removed - not essential for website functionality
 
+// Mobile detection and error handling
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+}
+
+// Enhanced error handling for mobile
+function handleError(error, context) {
+    console.error(`Error in ${context}:`, error);
+    
+    // Show user-friendly error message on mobile
+    if (isMobile()) {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ff4444;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 10000;
+            text-align: center;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        `;
+        errorDiv.innerHTML = `
+            <h3>Something went wrong</h3>
+            <p>Please refresh the page or try again later.</p>
+            <button onclick="this.parentElement.remove()" style="background: white; color: #ff4444; border: none; padding: 8px 16px; border-radius: 5px; margin-top: 10px;">OK</button>
+        `;
+        document.body.appendChild(errorDiv);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (errorDiv.parentElement) {
+                errorDiv.remove();
+            }
+        }, 10000);
+    }
+}
+
+// Global error handler for mobile
+window.addEventListener('error', function(e) {
+    errorCount++;
+    handleError(e.error, 'global error');
+    updateDebugInfo();
+});
+
+// Log mobile detection
+console.log('Mobile device detected:', isMobile());
+console.log('User agent:', navigator.userAgent);
+console.log('Viewport width:', window.innerWidth);
+
+// Debug counter
+let errorCount = 0;
+
+// Update debug info
+function updateDebugInfo() {
+    const debugDiv = document.getElementById('mobile-debug');
+    if (debugDiv) {
+        document.getElementById('debug-mobile').textContent = isMobile() ? 'Yes' : 'No';
+        document.getElementById('debug-width').textContent = window.innerWidth + 'px';
+        document.getElementById('debug-ua').textContent = navigator.userAgent.substring(0, 50) + '...';
+        document.getElementById('debug-errors').textContent = errorCount;
+        
+        // Show debug info on mobile
+        if (isMobile()) {
+            debugDiv.style.display = 'block';
+        }
+    }
+}
+
+// Mobile loading handler
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileLoading = document.getElementById('mobile-loading');
+    
+    // Update debug info
+    updateDebugInfo();
+    
+    if (isMobile() && mobileLoading) {
+        // Show loading for mobile devices
+        mobileLoading.style.display = 'flex';
+        
+        // Hide loading after page is fully loaded
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                mobileLoading.classList.add('hidden');
+                console.log('Mobile loading completed');
+                updateDebugInfo();
+            }, 1000);
+        });
+        
+        // Fallback: hide loading after 5 seconds regardless
+        setTimeout(() => {
+            if (mobileLoading && !mobileLoading.classList.contains('hidden')) {
+                mobileLoading.classList.add('hidden');
+                console.log('Mobile loading timeout - forcing hide');
+                updateDebugInfo();
+            }
+        }, 5000);
+    } else if (mobileLoading) {
+        // Hide loading immediately on desktop
+        mobileLoading.style.display = 'none';
+    }
+});
+
 // Smooth scroll for navigation
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
