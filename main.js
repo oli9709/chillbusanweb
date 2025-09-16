@@ -1112,6 +1112,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add mobile scroll indicator for custom tour section
     if (isMobile()) {
         addMobileScrollIndicator();
+        ensureCustomTourVisible();
+        
+        // Emergency: Create custom tour section if it doesn't exist
+        setTimeout(() => {
+            createEmergencyCustomTourSection();
+        }, 2000);
     }
 });
 
@@ -1176,4 +1182,213 @@ function addMobileScrollIndicator() {
     }, { threshold: 0.5 });
     
     observer.observe(customTourSection);
+}
+
+// Ensure custom tour section is visible on mobile
+function ensureCustomTourVisible() {
+    const customTourSection = document.getElementById('custom-tour');
+    console.log('Custom tour section found:', customTourSection);
+    if (!customTourSection) {
+        console.log('ERROR: Custom tour section not found!');
+        // Try to find it by class name
+        const customTourByClass = document.querySelector('.custom-tour');
+        console.log('Custom tour by class:', customTourByClass);
+        return;
+    }
+    
+    // Force visibility
+    customTourSection.style.display = 'block';
+    customTourSection.style.visibility = 'visible';
+    customTourSection.style.opacity = '1';
+    customTourSection.style.minHeight = '90vh';
+    customTourSection.style.padding = '60px 15px';
+    customTourSection.style.background = 'linear-gradient(135deg, #4A90E2 0%, #65C7D0 100%)';
+    
+    // Ensure all child elements are visible
+    const children = customTourSection.querySelectorAll('*');
+    children.forEach(child => {
+        child.style.display = 'block';
+        child.style.visibility = 'visible';
+        child.style.opacity = '1';
+    });
+    
+    // Make sure the title and intro are visible
+    const title = customTourSection.querySelector('h2');
+    if (title) {
+        title.style.color = 'white';
+        title.style.textShadow = '2px 2px 4px rgba(0,0,0,0.3)';
+        title.style.fontSize = '2.5rem';
+    }
+    
+    const intro = customTourSection.querySelector('.section-intro');
+    if (intro) {
+        intro.style.color = 'white';
+        intro.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
+        intro.style.fontSize = '1.3rem';
+    }
+    
+    // Make sure the tour builder is visible
+    const tourBuilder = customTourSection.querySelector('.tour-builder');
+    if (tourBuilder) {
+        tourBuilder.style.background = 'white';
+        tourBuilder.style.borderRadius = '20px';
+        tourBuilder.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+        tourBuilder.style.padding = '25px';
+    }
+    
+    console.log('Custom tour section visibility enforced for mobile');
+}
+
+// Emergency function to create custom tour section if it doesn't exist
+function createEmergencyCustomTourSection() {
+    const existingSection = document.getElementById('custom-tour');
+    if (existingSection) {
+        console.log('Custom tour section already exists');
+        return;
+    }
+    
+    console.log('Creating emergency custom tour section...');
+    
+    // Find a good place to insert the section (after tours section)
+    const toursSection = document.getElementById('tours');
+    if (!toursSection) {
+        console.log('Tours section not found, inserting at end of body');
+        insertCustomTourAtEnd();
+        return;
+    }
+    
+    // Create the custom tour section
+    const customTourSection = document.createElement('section');
+    customTourSection.id = 'custom-tour';
+    customTourSection.className = 'custom-tour section';
+    customTourSection.innerHTML = `
+        <h2>🎨 Build Your Perfect Tour</h2>
+        <p class="section-intro">Create your own personalized Busan experience! Choose up to 5 locations and customize your tour with lunch and extra services.</p>
+        
+        <div class="custom-tour-container">
+            <div class="tour-builder">
+                <div class="builder-step">
+                    <h3>Step 1: Choose Your Locations (4-5 locations, $49.99 each)</h3>
+                    <div class="location-options">
+                        <label class="location-option">
+                            <input type="checkbox" name="locations" value="gamcheon" data-price="49.99">
+                            <span class="option-content">
+                                <i class="fas fa-mountain"></i>
+                                <span>Gamcheon Culture Village</span>
+                                <span class="price">$49.99</span>
+                            </span>
+                        </label>
+                        <label class="location-option">
+                            <input type="checkbox" name="locations" value="gwangalli" data-price="49.99">
+                            <span class="option-content">
+                                <i class="fas fa-bridge"></i>
+                                <span>Gwangalli Beach & Bridge</span>
+                                <span class="price">$49.99</span>
+                            </span>
+                        </label>
+                        <label class="location-option">
+                            <input type="checkbox" name="locations" value="haeundae" data-price="49.99">
+                            <span class="option-content">
+                                <i class="fas fa-umbrella-beach"></i>
+                                <span>Haeundae Beach</span>
+                                <span class="price">$49.99</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="tour-summary">
+                    <h3>Your Custom Tour Summary</h3>
+                    <div id="tour-summary-content">
+                        <p>Select your locations above to see your personalized tour summary.</p>
+                    </div>
+                    <div class="cost-calculator">
+                        <div class="total-cost">
+                            <h4>💳 Total Cost</h4>
+                            <div id="total-cost">$0.00</div>
+                        </div>
+                    </div>
+                    <div class="summary-actions">
+                        <button class="contact-button" onclick="alert('Contact us at theofficialali05@gmail.com to book your custom tour!')">Contact Us About This Tour</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Insert after tours section
+    toursSection.parentNode.insertBefore(customTourSection, toursSection.nextSibling);
+    
+    // Apply mobile styles
+    if (isMobile()) {
+        customTourSection.style.cssText = `
+            padding: 60px 15px !important;
+            min-height: 90vh !important;
+            background: linear-gradient(135deg, #4A90E2 0%, #65C7D0 100%) !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        `;
+        
+        const title = customTourSection.querySelector('h2');
+        if (title) {
+            title.style.cssText = `
+                font-size: 2.5rem !important;
+                color: white !important;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+                text-align: center !important;
+            `;
+        }
+        
+        const intro = customTourSection.querySelector('.section-intro');
+        if (intro) {
+            intro.style.cssText = `
+                color: white !important;
+                font-size: 1.3rem !important;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
+                text-align: center !important;
+            `;
+        }
+        
+        const tourBuilder = customTourSection.querySelector('.tour-builder');
+        if (tourBuilder) {
+            tourBuilder.style.cssText = `
+                background: white !important;
+                border-radius: 20px !important;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+                padding: 25px !important;
+                margin: 20px auto !important;
+                max-width: 90% !important;
+            `;
+        }
+    }
+    
+    console.log('Emergency custom tour section created successfully');
+}
+
+function insertCustomTourAtEnd() {
+    const customTourSection = document.createElement('section');
+    customTourSection.id = 'custom-tour';
+    customTourSection.className = 'custom-tour section';
+    customTourSection.innerHTML = `
+        <h2>🎨 Build Your Perfect Tour</h2>
+        <p class="section-intro">Create your own personalized Busan experience!</p>
+        <div style="text-align: center; padding: 40px;">
+            <p style="font-size: 1.2rem; color: white; margin-bottom: 30px;">Contact us to create your custom tour!</p>
+            <a href="mailto:theofficialali05@gmail.com" style="background: white; color: #4A90E2; padding: 15px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; display: inline-block;">Email Us</a>
+        </div>
+    `;
+    
+    if (isMobile()) {
+        customTourSection.style.cssText = `
+            padding: 60px 15px !important;
+            min-height: 90vh !important;
+            background: linear-gradient(135deg, #4A90E2 0%, #65C7D0 100%) !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        `;
+    }
+    
+    document.body.appendChild(customTourSection);
 } 

@@ -15,7 +15,7 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/">
       <AuthProvider>
         <div className="App">
           <Navigation />
@@ -37,7 +37,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             
-            {/* Protected Routes */}
+            {/* Custom Tour Route - No authentication required */}
             <Route 
               path="/custom-tour" 
               element={<CustomTourBuilder />} 
