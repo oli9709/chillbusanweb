@@ -1108,4 +1108,72 @@ function initVideoBackground() {
 // Initialize video background when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     initVideoBackground();
-}); 
+    
+    // Add mobile scroll indicator for custom tour section
+    if (isMobile()) {
+        addMobileScrollIndicator();
+    }
+});
+
+// Mobile scroll indicator for custom tour section
+function addMobileScrollIndicator() {
+    const customTourSection = document.getElementById('custom-tour');
+    if (!customTourSection) return;
+    
+    // Create scroll indicator
+    const indicator = document.createElement('div');
+    indicator.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #4A90E2;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 50px;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    `;
+    indicator.innerHTML = '🎨 Custom Tour';
+    
+    // Add click handler to scroll to custom tour
+    indicator.addEventListener('click', () => {
+        customTourSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    });
+    
+    // Add hover effect
+    indicator.addEventListener('mouseenter', () => {
+        indicator.style.transform = 'scale(1.05)';
+        indicator.style.background = '#65C7D0';
+    });
+    
+    indicator.addEventListener('mouseleave', () => {
+        indicator.style.transform = 'scale(1)';
+        indicator.style.background = '#4A90E2';
+    });
+    
+    // Add to page
+    document.body.appendChild(indicator);
+    
+    // Hide indicator when user reaches custom tour section
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                indicator.style.display = 'none';
+            } else {
+                indicator.style.display = 'flex';
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    observer.observe(customTourSection);
+} 
