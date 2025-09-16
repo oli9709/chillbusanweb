@@ -73,7 +73,7 @@ function updateDebugInfo() {
     }
 }
 
-// Mobile loading handler
+// Mobile loading handler - FIXED VERSION
 document.addEventListener('DOMContentLoaded', function() {
     const mobileLoading = document.getElementById('mobile-loading');
     
@@ -84,23 +84,42 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show loading for mobile devices
         mobileLoading.style.display = 'flex';
         
-        // Hide loading after page is fully loaded
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                mobileLoading.classList.add('hidden');
-                console.log('Mobile loading completed');
-                updateDebugInfo();
-            }, 1000);
-        });
+        // Multiple fallback mechanisms to ensure loading screen disappears
+        let loadingHidden = false;
         
-        // Fallback: hide loading after 5 seconds regardless
-        setTimeout(() => {
-            if (mobileLoading && !mobileLoading.classList.contains('hidden')) {
+        function hideLoading() {
+            if (!loadingHidden && mobileLoading) {
+                loadingHidden = true;
                 mobileLoading.classList.add('hidden');
-                console.log('Mobile loading timeout - forcing hide');
+                console.log('Mobile loading hidden');
                 updateDebugInfo();
             }
-        }, 5000);
+        }
+        
+        // Method 1: Hide after page load
+        window.addEventListener('load', function() {
+            setTimeout(hideLoading, 200);
+        });
+        
+        // Method 2: Hide after DOM is ready (immediate fallback)
+        setTimeout(hideLoading, 1000);
+        
+        // Method 3: Hide after 2 seconds regardless (safety net)
+        setTimeout(hideLoading, 2000);
+        
+        // Method 4: Hide when user interacts
+        document.addEventListener('touchstart', hideLoading, { once: true });
+        document.addEventListener('click', hideLoading, { once: true });
+        
+        // Method 5: Force hide after 3 seconds (emergency fallback)
+        setTimeout(() => {
+            if (mobileLoading) {
+                mobileLoading.style.display = 'none';
+                mobileLoading.remove();
+                console.log('Emergency mobile loading removal');
+            }
+        }, 3000);
+        
     } else if (mobileLoading) {
         // Hide loading immediately on desktop
         mobileLoading.style.display = 'none';
