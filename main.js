@@ -1,4 +1,14 @@
 // Google Maps functionality removed - not essential for website functionality
+// Cache bust: Debug overlay completely removed
+
+// Force hide any remaining debug elements
+function hideDebugElements() {
+    const debugDiv = document.getElementById('mobile-debug');
+    if (debugDiv) {
+        debugDiv.style.display = 'none';
+        debugDiv.remove();
+    }
+}
 
 // Mobile detection and error handling
 function isMobile() {
@@ -53,6 +63,11 @@ console.log('Mobile device detected:', isMobile());
 console.log('User agent:', navigator.userAgent);
 console.log('Viewport width:', window.innerWidth);
 
+// Force hide debug elements on window load too
+window.addEventListener('load', function() {
+    hideDebugElements();
+});
+
 // Debug counter
 let errorCount = 0;
 
@@ -60,6 +75,9 @@ let errorCount = 0;
 
 // Mobile loading handler - FIXED VERSION
 document.addEventListener('DOMContentLoaded', function() {
+    // Force hide any debug elements
+    hideDebugElements();
+    
     const mobileLoading = document.getElementById('mobile-loading');
     
     if (isMobile() && mobileLoading) {
