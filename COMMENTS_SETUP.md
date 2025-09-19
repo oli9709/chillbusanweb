@@ -33,6 +33,8 @@
    cd netlify/functions
    npm install
    ```
+   
+   **Note:** The function now uses `@netlify/neon` package which automatically reads the `DATABASE_URL` environment variable.
 
 2. **Deploy to Netlify:**
    - Push your changes to GitHub
@@ -57,8 +59,7 @@
 /
 ├── netlify/
 │   └── functions/
-│       ├── addComment.js      # POST /api/addComment
-│       ├── getComments.js     # GET /api/getComments
+│       ├── comments.js        # GET/POST /api/comments
 │       └── package.json       # Dependencies
 ├── index.html                 # Updated with comment section
 ├── style.css                 # Comment section styles

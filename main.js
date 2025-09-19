@@ -98,7 +98,7 @@ class CommentsManager {
         this.setLoading(true);
 
         try {
-            const response = await fetch('/.netlify/functions/addComment', {
+            const response = await fetch('/.netlify/functions/comments', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ class CommentsManager {
 
     async loadComments() {
         try {
-            const response = await fetch('/.netlify/functions/getComments');
+            const response = await fetch('/.netlify/functions/comments');
             const result = await response.json();
 
             if (result.success) {
