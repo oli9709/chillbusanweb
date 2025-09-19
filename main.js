@@ -1,5 +1,6 @@
 // Google Maps functionality removed - not essential for website functionality
 // Cache bust: Debug overlay completely removed
+// Cache bust: Comment system added
 
 // Force hide any remaining debug elements
 function hideDebugElements() {
