@@ -68,6 +68,159 @@ window.addEventListener('load', function() {
     hideDebugElements();
 });
 
+// Comments functionality
+class CommentsManager {
+    constructor() {
+        this.commentsList = document.getElementById('commentsList');
+        this.commentForm = document.getElementById('commentForm');
+        this.init();
+    }
+
+    init() {
+        if (this.commentForm) {
+            this.commentForm.addEventListener('submit', this.handleSubmit.bind(this));
+        }
+        this.loadComments();
+    }
+
+    async handleSubmit(event) {
+        event.preventDefault();
+        
+        const formData = new FormData(this.commentForm);
+        const name = formData.get('name').trim();
+        const text = formData.get('text').trim();
+
+        if (!name || !text) {
+            this.showMessage('Please fill in all fields', 'error');
+            return;
+        }
+
+        this.setLoading(true);
+
+        try {
+            const response = await fetch('/.netlify/functions/addComment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, text })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showMessage('Comment posted successfully!', 'success');
+                this.commentForm.reset();
+                this.loadComments(); // Refresh comments
+            } else {
+                this.showMessage(result.error || 'Failed to post comment', 'error');
+            }
+        } catch (error) {
+            console.error('Error posting comment:', error);
+            this.showMessage('Network error. Please try again.', 'error');
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    async loadComments() {
+        try {
+            const response = await fetch('/.netlify/functions/getComments');
+            const result = await response.json();
+
+            if (result.success) {
+                this.displayComments(result.comments);
+            } else {
+                this.showMessage('Failed to load comments', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading comments:', error);
+            this.displayComments([]);
+        }
+    }
+
+    displayComments(comments) {
+        if (!this.commentsList) return;
+
+        if (comments.length === 0) {
+            this.commentsList.innerHTML = '<div class="no-comments">No comments yet. Be the first to share your experience!</div>';
+            return;
+        }
+
+        this.commentsList.innerHTML = comments.map(comment => `
+            <div class="comment-item">
+                <div class="comment-header">
+                    <div class="comment-name">${this.escapeHtml(comment.name)}</div>
+                    <div class="comment-date">${this.formatDate(comment.created_at)}</div>
+                </div>
+                <div class="comment-text">${this.escapeHtml(comment.text)}</div>
+            </div>
+        `).join('');
+    }
+
+    setLoading(loading) {
+        const submitBtn = this.commentForm?.querySelector('.submit-btn');
+        if (!submitBtn) return;
+
+        const btnText = submitBtn.querySelector('.btn-text');
+        const btnLoading = submitBtn.querySelector('.btn-loading');
+
+        if (loading) {
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
+        } else {
+            submitBtn.disabled = false;
+            btnText.style.display = 'inline';
+            btnLoading.style.display = 'none';
+        }
+    }
+
+    showMessage(message, type) {
+        // Remove existing messages
+        const existingMessages = document.querySelectorAll('.error-message, .success-message');
+        existingMessages.forEach(msg => msg.remove());
+
+        // Create new message
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `${type}-message`;
+        messageDiv.textContent = message;
+
+        // Insert after form
+        const formContainer = document.querySelector('.comment-form-container');
+        if (formContainer) {
+            formContainer.insertAdjacentElement('afterend', messageDiv);
+        }
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 5000);
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+}
+
+// Initialize comments when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    new CommentsManager();
+});
+
 // Debug counter
 let errorCount = 0;
 

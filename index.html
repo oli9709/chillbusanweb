@@ -819,6 +819,44 @@
         </div>
     </section>
 
+    <!-- Comments Section -->
+    <section class="comments-section" id="comments">
+        <div class="container">
+            <h2>💬 Share Your Experience</h2>
+            <p class="section-intro">Tell us about your Busan adventure! We'd love to hear from you.</p>
+            
+            <!-- Comment Form -->
+            <div class="comment-form-container">
+                <form id="commentForm" class="comment-form">
+                    <div class="form-group">
+                        <label for="commentName">Your Name *</label>
+                        <input type="text" id="commentName" name="name" required maxlength="100" placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label for="commentText">Your Comment *</label>
+                        <textarea id="commentText" name="text" required maxlength="1000" placeholder="Share your experience with us..." rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-text">Post Comment</span>
+                        <span class="btn-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Posting...
+                        </span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Comments Display -->
+            <div class="comments-container">
+                <h3>Recent Comments</h3>
+                <div id="commentsList" class="comments-list">
+                    <div class="loading-comments">
+                        <i class="fas fa-spinner fa-spin"></i> Loading comments...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">

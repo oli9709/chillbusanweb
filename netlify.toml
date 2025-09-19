@@ -1,7 +1,8 @@
-[build]
-  publish = "/"
-  
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200 
+   [build]
+     publish = "chill-busan-tours/dist"
+     command = "cd chill-busan-tours && npm run build"
+     
+   [[redirects]]
+     from = "/*"
+     to = "/index.html"
+     status = 200

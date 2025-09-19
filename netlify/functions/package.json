@@ -1,0 +1,12 @@
+{
+  "name": "chill-busan-tours-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions for Chill Busan Tours comment system",
+  "main": "index.js",
+  "dependencies": {
+    "pg": "^8.11.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
