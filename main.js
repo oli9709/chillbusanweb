@@ -46,7 +46,6 @@ function handleError(error, context) {
 window.addEventListener('error', function(e) {
     errorCount++;
     handleError(e.error, 'global error');
-    updateDebugInfo();
 });
 
 // Log mobile detection
@@ -57,61 +56,11 @@ console.log('Viewport width:', window.innerWidth);
 // Debug counter
 let errorCount = 0;
 
-// Update debug info
-function updateDebugInfo() {
-    const debugDiv = document.getElementById('mobile-debug');
-    if (debugDiv) {
-        // Show debug box on page load
-        debugDiv.style.display = 'block';
-        
-        // Update mobile detection
-        const mobileSpan = document.getElementById('debug-mobile');
-        if (mobileSpan) {
-            mobileSpan.textContent = isMobile() ? 'Yes' : 'No';
-        }
-        
-        // Update width
-        const widthSpan = document.getElementById('debug-width');
-        if (widthSpan) {
-            widthSpan.textContent = window.innerWidth;
-        }
-        
-        // Update user agent
-        const uaSpan = document.getElementById('debug-ua');
-        if (uaSpan) {
-            uaSpan.textContent = navigator.userAgent;
-        }
-        
-        // Update error count
-        const errorsSpan = document.getElementById('debug-errors');
-        if (errorsSpan) {
-            errorsSpan.textContent = errorCount;
-        }
-        
-        console.log('Debug info updated:', {
-            mobile: isMobile(),
-            width: window.innerWidth,
-            userAgent: navigator.userAgent,
-            errors: errorCount
-        });
-    }
-}
 
-// Window resize listener for debug info
-window.addEventListener('resize', function() {
-    const widthSpan = document.getElementById('debug-width');
-    if (widthSpan) {
-        widthSpan.textContent = window.innerWidth;
-        console.log('Window resized to:', window.innerWidth);
-    }
-});
 
 // Mobile loading handler - FIXED VERSION
 document.addEventListener('DOMContentLoaded', function() {
     const mobileLoading = document.getElementById('mobile-loading');
-    
-    // Update debug info
-    updateDebugInfo();
     
     if (isMobile() && mobileLoading) {
         // Show loading for mobile devices
@@ -125,7 +74,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadingHidden = true;
                 mobileLoading.classList.add('hidden');
                 console.log('Mobile loading hidden');
-                updateDebugInfo();
             }
         }
         
