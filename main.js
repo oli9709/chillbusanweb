@@ -99,6 +99,7 @@ class CommentsManager {
         this.setLoading(true);
 
         try {
+            console.log('Posting comment:', { name, text });
             const response = await fetch('/.netlify/functions/comments', {
                 method: 'POST',
                 headers: {
@@ -107,7 +108,14 @@ class CommentsManager {
                 body: JSON.stringify({ name, text })
             });
 
+            console.log('Post response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const result = await response.json();
+            console.log('Post result:', result);
 
             if (result.success) {
                 this.showMessage('Comment posted successfully!', 'success');
@@ -115,6 +123,7 @@ class CommentsManager {
                 this.loadComments(); // Refresh comments
             } else {
                 this.showMessage(result.error || 'Failed to post comment', 'error');
+                console.error('Failed to post comment:', result);
             }
         } catch (error) {
             console.error('Error posting comment:', error);
@@ -126,16 +135,26 @@ class CommentsManager {
 
     async loadComments() {
         try {
+            console.log('Loading comments...');
             const response = await fetch('/.netlify/functions/comments');
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const result = await response.json();
+            console.log('Comments result:', result);
 
             if (result.success) {
                 this.displayComments(result.comments);
             } else {
                 this.showMessage('Failed to load comments', 'error');
+                console.error('Failed to load comments:', result);
             }
         } catch (error) {
             console.error('Error loading comments:', error);
+            this.showMessage('Failed to connect to server. Please check your connection.', 'error');
             this.displayComments([]);
         }
     }
@@ -219,7 +238,46 @@ class CommentsManager {
 
 // Initialize comments when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    new CommentsManager();
+    console.log('DOM loaded, initializing comments...');
+    
+    // Check if comment elements exist
+    const commentsSection = document.getElementById('comments');
+    const commentsList = document.getElementById('commentsList');
+    const commentForm = document.getElementById('commentForm');
+    
+    console.log('Comment elements found:', {
+        commentsSection: !!commentsSection,
+        commentsList: !!commentsList,
+        commentForm: !!commentForm
+    });
+    
+    // Additional debugging
+    if (commentsSection) {
+        console.log('Comments section styles:', window.getComputedStyle(commentsSection));
+        console.log('Comments section display:', window.getComputedStyle(commentsSection).display);
+        console.log('Comments section visibility:', window.getComputedStyle(commentsSection).visibility);
+    }
+    
+    // Check if comment section is in the DOM
+    const allSections = document.querySelectorAll('section');
+    console.log('All sections found:', Array.from(allSections).map(s => ({ id: s.id, class: s.className })));
+    
+    // Search for comment-related elements
+    const commentElements = document.querySelectorAll('[id*="comment"], [class*="comment"]');
+    console.log('Comment-related elements:', Array.from(commentElements).map(el => ({ 
+        tag: el.tagName, 
+        id: el.id, 
+        class: el.className,
+        text: el.textContent?.substring(0, 50) + '...'
+    })));
+    
+    if (commentsSection && commentsList && commentForm) {
+        new CommentsManager();
+        console.log('CommentsManager initialized successfully');
+    } else {
+        console.error('Comment elements not found! Check HTML structure.');
+        console.log('Make sure the comment section HTML is included in the deployed version.');
+    }
 });
 
 // Debug counter
