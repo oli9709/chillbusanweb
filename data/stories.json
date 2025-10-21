@@ -1,5 +1,15 @@
 [
   {
+    "id": 4,
+    "date": "2025-10-21",
+    "tour": "Nightclub Crawl",
+    "photos": [
+      "/images/stories/nightclub_1.JPG",
+      "/images/stories/nightclub_2.JPG"
+    ],
+    "caption": "Electric night in Haeundae and Seomyeon – packed dance floors, VIP entries, and happy guests all night long!"
+  },
+  {
     "id": 3,
     "date": "2025-10-25",
     "tour": "Hidden Gems, Beaches & Local Food",
