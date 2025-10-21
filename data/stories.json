@@ -1,6 +1,6 @@
 [
   {
-    "id": 4,
+    "id": 1,
     "date": "2025-10-21",
     "tour": "Nightclub Crawl",
     "photos": [
@@ -8,37 +8,6 @@
       "/images/stories/nightclub_2.JPG"
     ],
     "caption": "Electric night in Haeundae and Seomyeon – packed dance floors, VIP entries, and happy guests all night long!"
-  },
-  {
-    "id": 3,
-    "date": "2025-10-25",
-    "tour": "Hidden Gems, Beaches & Local Food",
-    "photos": [
-      "/images/stories/2025-10-25-hidden-gems-1.jpg",
-      "/images/stories/2025-10-25-hidden-gems-2.jpg"
-    ],
-    "caption": "Perfect weather for exploring Busan's hidden beaches! Our guests from Australia had an amazing time discovering local food spots and scenic views."
-  },
-  {
-    "id": 1,
-    "date": "2025-10-21",
-    "tour": "Hidden Gems, Beaches & Local Food",
-    "photos": [
-      "/images/stories/2025-10-21-tour1-1.jpg",
-      "/images/stories/2025-10-21-tour1-2.jpg",
-      "/images/stories/2025-10-21-tour1-3.jpg"
-    ],
-    "caption": "Amazing day exploring hidden beaches and local food with our guests from Singapore!"
-  },
-  {
-    "id": 2,
-    "date": "2025-10-19",
-    "tour": "Nightclub Crawl",
-    "photos": [
-      "/images/stories/2025-10-19-nightclub-1.jpg",
-      "/images/stories/2025-10-19-nightclub-2.jpg"
-    ],
-    "caption": "Busan nightlife was on fire this weekend!"
   }
 ]
 
