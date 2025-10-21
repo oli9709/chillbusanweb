@@ -283,6 +283,166 @@ document.addEventListener('DOMContentLoaded', function() {
 // Debug counter
 let errorCount = 0;
 
+// ======================
+// Recent Tours / Stories
+// ======================
+(function initStories() {
+    const grid = document.getElementById('storiesGrid');
+    if (!grid) return;
+
+    // Modal elements
+    const modal = document.createElement('div');
+    modal.className = 'story-modal';
+    modal.innerHTML = `
+        <div class="story-modal-content">
+            <div class="story-modal-header">
+                <h3 id="storyModalTitle" style="margin:0;color:#2c3e50;">Story</h3>
+                <button class="story-modal-close" aria-label="Close">✕</button>
+            </div>
+            <div class="story-modal-gallery" id="storyModalGallery"></div>
+            <div class="story-modal-caption" id="storyModalCaption"></div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    const closeBtn = modal.querySelector('.story-modal-close');
+    closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+
+    function openStoryModal(story) {
+        document.getElementById('storyModalTitle').textContent = `${formatDate(story.date)} • ${story.tour}`;
+        const gal = document.getElementById('storyModalGallery');
+        gal.innerHTML = '';
+        story.photos.forEach(src => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = story.tour;
+            gal.appendChild(img);
+        });
+        document.getElementById('storyModalCaption').textContent = story.caption || '';
+        modal.classList.add('open');
+    }
+
+    function formatDate(iso) {
+        try {
+            const d = new Date(iso);
+            return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        } catch { return iso; }
+    }
+
+    async function loadStories() {
+        try {
+            const res = await fetch('data/stories.json', { cache: 'no-cache' });
+            if (!res.ok) throw new Error('Failed to load stories');
+            const stories = await res.json();
+
+            grid.innerHTML = '';
+            stories.forEach(story => {
+                const card = document.createElement('div');
+                card.className = 'story-card';
+                const thumb = (story.photos && story.photos[0]) || 'logo.png';
+                card.innerHTML = `
+                    <img class="story-thumb" src="${thumb}" alt="${story.tour}">
+                    <div class="story-body">
+                        <div class="story-meta"><i class="far fa-calendar"></i> ${formatDate(story.date)} • ${story.tour}</div>
+                        <h4 class="story-title">${story.caption ? story.caption : story.tour}</h4>
+                        <div class="story-actions">
+                            <button class="story-button">View Gallery</button>
+                        </div>
+                    </div>
+                `;
+                card.querySelector('.story-button').addEventListener('click', () => openStoryModal(story));
+                grid.appendChild(card);
+            });
+        } catch (e) {
+            console.error('Error loading stories:', e);
+            grid.innerHTML = '<div class="no-comments">Stories will appear here soon.</div>';
+        }
+    }
+
+    loadStories();
+})();
+
+// ======================
+// Admin Form for Adding Stories
+// ======================
+(function initAdminForm() {
+    const form = document.getElementById('adminStoryForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const date = formData.get('date');
+        const tour = formData.get('tour').trim();
+        const caption = formData.get('caption').trim();
+        const photosText = formData.get('photos').trim();
+        
+        if (!date || !tour || !caption || !photosText) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+        
+        // Parse photos from textarea (one per line)
+        const photos = photosText.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+        
+        if (photos.length === 0) {
+            alert('Please enter at least one photo URL.');
+            return;
+        }
+        
+        try {
+            // Load existing stories
+            const response = await fetch('data/stories.json');
+            const stories = await response.json();
+            
+            // Find next ID
+            const nextId = Math.max(...stories.map(s => s.id), 0) + 1;
+            
+            // Create new story
+            const newStory = {
+                id: nextId,
+                date: date,
+                tour: tour,
+                photos: photos,
+                caption: caption
+            };
+            
+            // Add to beginning of array (newest first)
+            stories.unshift(newStory);
+            
+            // Save back to file (this won't work on live site, but works locally)
+            // For production, you'd need a backend API
+            console.log('New story created:', newStory);
+            console.log('Updated stories array:', stories);
+            
+            // Show success message
+            alert('Story added successfully! (Note: This only works locally. For production, you need a backend API to save to the server.)');
+            
+            // Reset form
+            form.reset();
+            
+            // Hide admin section
+            const adminSection = document.getElementById('adminSection');
+            const adminToggle = document.getElementById('adminToggle');
+            if (adminSection) adminSection.style.display = 'none';
+            if (adminToggle) adminToggle.innerHTML = '<i class="fas fa-plus"></i>';
+            
+            // Reload stories
+            if (typeof loadStories === 'function') {
+                loadStories();
+            }
+            
+        } catch (error) {
+            console.error('Error adding story:', error);
+            alert('Error adding story. Please try again.');
+        }
+    });
+})();
+
 
 
 // Mobile loading handler - FIXED VERSION

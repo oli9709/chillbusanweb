@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tour Stories - Chill Busan Tours</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <a href="index.html" class="nav-logo">Chill Busan Tours</a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html#hero">Home</a></li>
+            <li><a href="index.html#tours">Tours</a></li>
+            <li><a href="index.html#custom-tour">Custom Tour</a></li>
+            <li><a href="index.html#gallery">Gallery</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#events">Events</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+            <li><a href="stories.html" class="active">Stories</a></li>
+        </ul>
+    </nav>
+
+    <!-- Stories Page Header -->
+    <section class="stories-hero">
+        <div class="stories-hero-content">
+            <h1>Tour Stories</h1>
+            <p>Moments from our latest adventures around Busan</p>
+        </div>
+    </section>
+
+    <!-- Stories Grid -->
+    <section class="stories section" id="stories">
+        <div class="stories-grid" id="storiesGrid">
+            <!-- Stories will be rendered here by main.js -->
+        </div>
+    </section>
+
+    <!-- Admin Section (Hidden by default) -->
+    <section class="admin-section" id="adminSection" style="display: none;">
+        <div class="admin-container">
+            <h2>Add New Story</h2>
+            <form id="adminStoryForm" class="admin-form">
+                <div class="form-group">
+                    <label for="storyDate">Date *</label>
+                    <input type="date" id="storyDate" name="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="storyTour">Tour Name *</label>
+                    <input type="text" id="storyTour" name="tour" required placeholder="e.g., Hidden Gems, Beaches & Local Food">
+                </div>
+                
+                <div class="form-group">
+                    <label for="storyCaption">Caption *</label>
+                    <textarea id="storyCaption" name="caption" required placeholder="1-2 sentences describing the story..." rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="storyPhotos">Photo URLs (one per line) *</label>
+                    <textarea id="storyPhotos" name="photos" required placeholder="/images/stories/2025-10-25-tour-1.jpg&#10;/images/stories/2025-10-25-tour-2.jpg" rows="4"></textarea>
+                    <small>Enter one photo path per line. First photo will be the thumbnail.</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="submit-button">Add Story</button>
+                    <button type="button" id="cancelAdd" class="cancel-button">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Admin Toggle Button -->
+    <button id="adminToggle" class="admin-toggle" title="Toggle Admin Panel">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h3>Chill Busan Tours</h3>
+                <p>Private. Relaxed. Unforgettable.</p>
+            </div>
+            <div class="footer-social">
+                <a href="https://instagram.com/chilltours_busan" target="_blank" rel="noopener noreferrer" class="social-icon">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </div>
+            <div class="footer-info">
+                <p>© 2024 Chill Busan Tours. All rights reserved.</p>
+                <p>Tour Agency • Busan, South Korea</p>
+                <nav class="footer-nav">
+                    <a href="index.html#hero">Home</a>
+                    <a href="index.html#tours">Tours</a>
+                    <a href="index.html#gallery">Gallery</a>
+                    <a href="index.html#about">About</a>
+                    <a href="index.html#contact">Contact</a>
+                    <a href="stories.html">Stories</a>
+                </nav>
+            </div>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+    <script>
+        // Stories page specific functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Admin toggle functionality
+            const adminToggle = document.getElementById('adminToggle');
+            const adminSection = document.getElementById('adminSection');
+            const cancelBtn = document.getElementById('cancelAdd');
+            
+            adminToggle.addEventListener('click', () => {
+                adminSection.style.display = adminSection.style.display === 'none' ? 'block' : 'none';
+                adminToggle.innerHTML = adminSection.style.display === 'none' ? '<i class="fas fa-plus"></i>' : '<i class="fas fa-times"></i>';
+            });
+            
+            cancelBtn.addEventListener('click', () => {
+                adminSection.style.display = 'none';
+                adminToggle.innerHTML = '<i class="fas fa-plus"></i>';
+                document.getElementById('adminStoryForm').reset();
+            });
+        });
+    </script>
+</body>
+</html>
