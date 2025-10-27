@@ -332,15 +332,10 @@ let errorCount = 0;
 
     async function loadStories() {
         try {
-            // Try to fetch from Netlify function first, fallback to JSON file
-            let res = await fetch('/.netlify/functions/stories');
-            if (!res.ok) {
-                // Fallback to JSON file if function not available
-                res = await fetch('data/stories.json', { cache: 'no-cache' });
-            }
+            // Always fetch from the static JSON file
+            const res = await fetch('data/stories.json', { cache: 'no-cache' });
             if (!res.ok) throw new Error('Failed to load stories');
-            const data = await res.json();
-            const stories = data.stories || data;
+            const stories = await res.json();
 
             grid.innerHTML = '';
             stories.forEach(story => {
@@ -421,26 +416,68 @@ let errorCount = 0;
                 throw new Error(result.error || 'Failed to add story');
             }
             
-            // Show success message
-            alert('Story added successfully!');
+            // Show the JSON to the user so they can manually update the file
+            const jsonToAdd = JSON.stringify([result.story], null, 2);
             
-            // Reset form
-            form.reset();
+            // Create a modal to show the JSON
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            `;
             
-            // Hide admin section
-            const adminSection = document.getElementById('adminSection');
-            const adminToggle = document.getElementById('adminToggle');
-            if (adminSection) adminSection.style.display = 'none';
-            if (adminToggle) adminToggle.innerHTML = '<i class="fas fa-plus"></i>';
+            modal.innerHTML = `
+                <div style="background: white; padding: 30px; border-radius: 10px; max-width: 600px; max-height: 80vh; overflow-y: auto;">
+                    <h2 style="margin-top: 0;">✨ Story Created Successfully!</h2>
+                    <p>Copy this JSON and manually update <code>data/stories.json</code>:</p>
+                    <textarea readonly style="width: 100%; height: 200px; font-family: monospace; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: none;" id="jsonOutput">${jsonToAdd}</textarea>
+                    <button id="copyBtn" style="background: #4A90E2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px;">📋 Copy JSON</button>
+                    <button id="closeBtn" style="background: #666; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-left: 10px;">Close</button>
+                </div>
+            `;
             
-            // Reload stories - get the stories grid from stories.html
-            const storiesGrid = document.getElementById('storiesGrid');
-            if (storiesGrid && typeof loadStories === 'function') {
-                loadStories();
-            } else {
-                // Reload the page to show the new story
-                window.location.reload();
-            }
+            document.body.appendChild(modal);
+            
+            document.getElementById('copyBtn').addEventListener('click', () => {
+                const textarea = document.getElementById('jsonOutput');
+                textarea.select();
+                document.execCommand('copy');
+                alert('Copied to clipboard!');
+            });
+            
+            const closeModal = () => {
+                modal.remove();
+                form.reset();
+                
+                // Hide admin section
+                const adminSection = document.getElementById('adminSection');
+                const adminToggle = document.getElementById('adminToggle');
+                if (adminSection) adminSection.style.display = 'none';
+                if (adminToggle) adminToggle.innerHTML = '<i class="fas fa-plus"></i>';
+                
+                // Reload stories if on stories page
+                const storiesGrid = document.getElementById('storiesGrid');
+                if (storiesGrid && typeof loadStories === 'function') {
+                    loadStories();
+                }
+            };
+            
+            document.getElementById('closeBtn').addEventListener('click', closeModal);
+            
+            // Close when clicking outside
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+            
+            console.log('New story JSON:', jsonToAdd);
             
         } catch (error) {
             console.error('Error adding story:', error);

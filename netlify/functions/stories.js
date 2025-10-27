@@ -1,6 +1,3 @@
-const fs = require('fs');
-const path = require('path');
-
 // Sanitize input to prevent XSS
 function sanitizeInput(input) {
   if (typeof input !== 'string') return '';
@@ -28,23 +25,20 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const storiesFilePath = path.join(__dirname, '../../data/stories.json');
-    
-    // Handle GET request - Fetch all stories
+    // Handle GET request - Return stories from static file
     if (event.httpMethod === 'GET') {
-      const stories = JSON.parse(fs.readFileSync(storiesFilePath, 'utf8'));
-      
+      // Just redirect to the static JSON file
       return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          stories: stories
-        })
+        statusCode: 302,
+        headers: {
+          ...headers,
+          Location: '/data/stories.json'
+        },
+        body: ''
       };
     }
 
-    // Handle POST request - Add new story
+    // Handle POST request - Generate new story JSON
     if (event.httpMethod === 'POST') {
       const { date, tour, caption, photos } = JSON.parse(event.body);
 
@@ -78,27 +72,16 @@ exports.handler = async (event, context) => {
         };
       }
 
-      // Load existing stories
-      const stories = JSON.parse(fs.readFileSync(storiesFilePath, 'utf8'));
-      
-      // Find next ID
-      const nextId = Math.max(...stories.map(s => s.id), 0) + 1;
-      
-      // Create new story
+      // Create new story with next ID
       const newStory = {
-        id: nextId,
+        id: Date.now(), // Simple ID generation
         date: sanitizedDate,
         tour: sanitizedTour,
         caption: sanitizedCaption,
         photos: sanitizedPhotos
       };
       
-      // Add to beginning of array (newest first)
-      stories.unshift(newStory);
-      
-      // Save back to file
-      fs.writeFileSync(storiesFilePath, JSON.stringify(stories, null, 2));
-      
+      // Return the new story JSON
       return {
         statusCode: 200,
         headers,
