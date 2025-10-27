@@ -1,6 +1,16 @@
 [
   {
     "id": 1,
+    "date": "2025-10-28",
+    "tour": "Busan Hidden Gems, Beaches & Local Food",
+    "photos": [
+      "/images/stories/daytour1.jpg",
+      "/images/stories/daytour2.jpg"
+    ],
+    "caption": "We were having great time with Australians!"
+  },
+  {
+    "id": 2,
     "date": "2025-10-21",
     "tour": "Nightclub Crawl",
     "photos": [
