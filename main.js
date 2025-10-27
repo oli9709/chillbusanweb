@@ -332,9 +332,15 @@ let errorCount = 0;
 
     async function loadStories() {
         try {
-            const res = await fetch('data/stories.json', { cache: 'no-cache' });
+            // Try to fetch from Netlify function first, fallback to JSON file
+            let res = await fetch('/.netlify/functions/stories');
+            if (!res.ok) {
+                // Fallback to JSON file if function not available
+                res = await fetch('data/stories.json', { cache: 'no-cache' });
+            }
             if (!res.ok) throw new Error('Failed to load stories');
-            const stories = await res.json();
+            const data = await res.json();
+            const stories = data.stories || data;
 
             grid.innerHTML = '';
             stories.forEach(story => {
@@ -395,32 +401,28 @@ let errorCount = 0;
         }
         
         try {
-            // Load existing stories
-            const response = await fetch('data/stories.json');
-            const stories = await response.json();
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Adding Story...';
+            submitButton.disabled = true;
             
-            // Find next ID
-            const nextId = Math.max(...stories.map(s => s.id), 0) + 1;
+            // Send to Netlify function
+            const response = await fetch('/.netlify/functions/stories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ date, tour, caption, photos })
+            });
+
+            const result = await response.json();
             
-            // Create new story
-            const newStory = {
-                id: nextId,
-                date: date,
-                tour: tour,
-                photos: photos,
-                caption: caption
-            };
-            
-            // Add to beginning of array (newest first)
-            stories.unshift(newStory);
-            
-            // Save back to file (this won't work on live site, but works locally)
-            // For production, you'd need a backend API
-            console.log('New story created:', newStory);
-            console.log('Updated stories array:', stories);
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to add story');
+            }
             
             // Show success message
-            alert('Story added successfully! (Note: This only works locally. For production, you need a backend API to save to the server.)');
+            alert('Story added successfully!');
             
             // Reset form
             form.reset();
@@ -431,14 +433,22 @@ let errorCount = 0;
             if (adminSection) adminSection.style.display = 'none';
             if (adminToggle) adminToggle.innerHTML = '<i class="fas fa-plus"></i>';
             
-            // Reload stories
-            if (typeof loadStories === 'function') {
+            // Reload stories - get the stories grid from stories.html
+            const storiesGrid = document.getElementById('storiesGrid');
+            if (storiesGrid && typeof loadStories === 'function') {
                 loadStories();
+            } else {
+                // Reload the page to show the new story
+                window.location.reload();
             }
             
         } catch (error) {
             console.error('Error adding story:', error);
-            alert('Error adding story. Please try again.');
+            alert('Error adding story: ' + (error.message || 'Please try again.'));
+        } finally {
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.textContent = 'Add Story';
+            submitButton.disabled = false;
         }
     });
 })();
