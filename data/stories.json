@@ -1,5 +1,15 @@
 [
   {
+    "id": 3,
+    "date": "2025-10-29",
+    "tour": "Nightclub Crawl",
+    "photos": [
+      "/images/stories/nightclub1.gif",
+      "/images/stories/nightclub3.jpg"
+    ],
+    "caption": "Another epic night out in Busan!"
+  },
+  {
     "id": 1,
     "date": "2025-10-28",
     "tour": "Busan Hidden Gems, Beaches & Local Food",
