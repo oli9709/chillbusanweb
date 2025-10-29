@@ -112,6 +112,18 @@ exports.handler = async (event, context) => {
         error: 'Internal server error' 
       })
     };
+    [
+      {
+        "id": 1761755166291,
+        "date": "2025-10-29",
+        "tour": "Nightclub Crawl – Dance, Drink & Party All Night",
+        "caption": "Nightclub Tour with Dilak 🇩🇪\nAt first, she was a little nervous — worried that going alone might be boring. But just one hour later, the music, lights, and new friends turned everything around! 🎶\nBy the end of the night, she said it was one of her best memories in Busan. 💃\nThank you, Dilak, for trusting us and joining the Chill Busan Nightclub Tour!",
+        "photos": [
+          "/images/stories/nightclub3.jpg",
+          "/images/stories/nightclub1.gif"
+        ]
+      }
+    ]
   }
 };
 
