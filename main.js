@@ -313,11 +313,69 @@ let errorCount = 0;
         document.getElementById('storyModalTitle').textContent = `${formatDate(story.date)} • ${story.tour}`;
         const gal = document.getElementById('storyModalGallery');
         gal.innerHTML = '';
+        // Handle videos (like MOV files with .gif extension)
+        if (story.videos && story.videos.length > 0) {
+            story.videos.forEach(src => {
+                const video = document.createElement('video');
+                video.src = src;
+                video.controls = true;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.playsInline = true;
+                video.style.width = '100%';
+                video.style.height = 'auto';
+                video.style.borderRadius = '10px';
+                gal.appendChild(video);
+            });
+        }
+        
         story.photos.forEach(src => {
-            const img = document.createElement('img');
-            img.src = src;
-            img.alt = story.tour;
-            gal.appendChild(img);
+            // Check if it's actually a video file (MOV) with wrong extension
+            if (src.endsWith('.gif') || src.includes('nightclub1')) {
+                // Try as video first
+                const video = document.createElement('video');
+                video.src = src;
+                video.controls = true;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.playsInline = true;
+                video.style.width = '100%';
+                video.style.height = 'auto';
+                video.style.borderRadius = '10px';
+                
+                video.onerror = function() {
+                    // If video fails, try as image
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = story.tour;
+                    img.loading = 'lazy';
+                    img.style.width = '100%';
+                    img.style.height = 'auto';
+                    img.style.objectFit = 'cover';
+                    img.onerror = function() {
+                        console.error('Failed to load:', src);
+                    };
+                    gal.replaceChild(img, video);
+                };
+                
+                gal.appendChild(video);
+            } else {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = story.tour;
+                img.loading = 'lazy';
+                img.style.width = '100%';
+                img.style.height = 'auto';
+                img.style.objectFit = 'cover';
+                
+                img.onerror = function() {
+                    console.error('Failed to load image:', src);
+                };
+                
+                gal.appendChild(img);
+            }
         });
         document.getElementById('storyModalCaption').textContent = story.caption || '';
         modal.classList.add('open');
@@ -342,16 +400,48 @@ let errorCount = 0;
                 const card = document.createElement('div');
                 card.className = 'story-card';
                 const thumb = (story.photos && story.photos[0]) || 'logo.png';
-                card.innerHTML = `
-                    <img class="story-thumb" src="${thumb}" alt="${story.tour}">
-                    <div class="story-body">
-                        <div class="story-meta"><i class="far fa-calendar"></i> ${formatDate(story.date)} • ${story.tour}</div>
-                        <h4 class="story-title">${story.caption ? story.caption : story.tour}</h4>
-                        <div class="story-actions">
-                            <button class="story-button">View Gallery</button>
+                const isVideo = thumb.includes('nightclub1') || (story.videos && story.videos.length > 0);
+                
+                if (isVideo && thumb.endsWith('.gif')) {
+                    // For video files, use a video element with poster
+                    card.innerHTML = `
+                        <video class="story-thumb" muted loop playsinline style="width: 100%; height: 220px; object-fit: cover;">
+                            <source src="${thumb}" type="video/mp4">
+                            <source src="${thumb}" type="video/quicktime">
+                        </video>
+                        <div class="story-body">
+                            <div class="story-meta"><i class="far fa-calendar"></i> ${formatDate(story.date)} • ${story.tour}</div>
+                            <h4 class="story-title">${story.caption ? story.caption : story.tour}</h4>
+                            <div class="story-actions">
+                                <button class="story-button">View Gallery</button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                    // Auto-play the video thumbnail
+                    const video = card.querySelector('video');
+                    if (video) {
+                        video.play().catch(e => console.log('Video autoplay prevented:', e));
+                    }
+                } else {
+                    card.innerHTML = `
+                        <img class="story-thumb" src="${thumb}" alt="${story.tour}" loading="lazy">
+                        <div class="story-body">
+                            <div class="story-meta"><i class="far fa-calendar"></i> ${formatDate(story.date)} • ${story.tour}</div>
+                            <h4 class="story-title">${story.caption ? story.caption : story.tour}</h4>
+                            <div class="story-actions">
+                                <button class="story-button">View Gallery</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add error handling for thumbnail
+                    const thumbImg = card.querySelector('.story-thumb');
+                    thumbImg.onerror = function() {
+                        console.error('Failed to load thumbnail:', thumb);
+                        this.src = 'logo.png'; // Fallback to logo
+                    };
+                }
+                
                 card.querySelector('.story-button').addEventListener('click', () => openStoryModal(story));
                 grid.appendChild(card);
             });
