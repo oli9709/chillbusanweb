@@ -9,27 +9,31 @@ const CustomTourBuilder = () => {
   const [totalCost, setTotalCost] = useState(0);
   const [tourSummary, setTourSummary] = useState('');
   const [costBreakdown, setCostBreakdown] = useState('');
+  const LOCATION_PRICE = 50;
+  const EVENING_PRICE = 15;
+
+  const formatUSD = (value) => `$${Math.round(value)}`;
 
   const locationOptions = [
-    { value: 'gamcheon', name: 'Gamcheon Culture Village', price: 49.99, icon: 'fas fa-mountain' },
-    { value: 'gwangalli', name: 'Gwangalli Beach & Bridge', price: 49.99, icon: 'fas fa-bridge' },
-    { value: 'haeundae', name: 'Haeundae Beach', price: 49.99, icon: 'fas fa-umbrella-beach' },
-    { value: 'oryukdo', name: 'Oryukdo Island and Skywalk', price: 49.99, icon: 'fas fa-island' },
-    { value: 'haedong', name: 'Haedong Yonggungsa Temple', price: 49.99, icon: 'fas fa-temple' },
-    { value: 'hwamyeong', name: 'Hwamyeong Eco Park (Mountain night view)', price: 49.99, icon: 'fas fa-tree' },
-    { value: 'songdo', name: 'Songdo Beach + Cable Car (Premium)', price: 49.99, icon: 'fas fa-cable-car', premium: true },
-    { value: 'blueline', name: 'Blue Line Park (Capsule train) (Premium)', price: 49.99, icon: 'fas fa-train', premium: true },
-    { value: 'jagalchi', name: 'Jagalchi Fish Market', price: 49.99, icon: 'fas fa-fish' },
-    { value: 'dadaepo', name: 'Dadaepo Beach + Sunset', price: 49.99, icon: 'fas fa-sunset' }
+    { value: 'gamcheon', name: 'Gamcheon Culture Village', price: LOCATION_PRICE, icon: 'fas fa-mountain' },
+    { value: 'gwangalli', name: 'Gwangalli Beach & Bridge', price: LOCATION_PRICE, icon: 'fas fa-bridge' },
+    { value: 'haeundae', name: 'Haeundae Beach', price: LOCATION_PRICE, icon: 'fas fa-umbrella-beach' },
+    { value: 'oryukdo', name: 'Oryukdo Island and Skywalk', price: LOCATION_PRICE, icon: 'fas fa-island' },
+    { value: 'haedong', name: 'Haedong Yonggungsa Temple', price: LOCATION_PRICE, icon: 'fas fa-temple' },
+    { value: 'hwamyeong', name: 'Hwamyeong Eco Park (Mountain night view)', price: LOCATION_PRICE, icon: 'fas fa-tree' },
+    { value: 'songdo', name: 'Songdo Beach + Cable Car (Premium)', price: LOCATION_PRICE, icon: 'fas fa-cable-car', premium: true },
+    { value: 'blueline', name: 'Blue Line Park (Capsule train) (Premium)', price: LOCATION_PRICE, icon: 'fas fa-train', premium: true },
+    { value: 'jagalchi', name: 'Jagalchi Fish Market', price: LOCATION_PRICE, icon: 'fas fa-fish' },
+    { value: 'dadaepo', name: 'Dadaepo Beach + Sunset', price: LOCATION_PRICE, icon: 'fas fa-sunset' }
   ];
 
   const lunchOptions = [
-    { value: 'geumsubokguk', name: 'Geumsubokguk (금수복국)' },
-    { value: 'obok', name: 'Obok Restaurant (오복미역)' },
-    { value: 'ashley', name: 'Ashley Queens Buffet' },
-    { value: 'haeundae-market', name: 'Haeundae Traditional Market Food Alley' },
-    { value: 'baekhwa', name: 'Baekhwa-jumak (백화주막)' },
-    { value: 'haeundae-bbq', name: 'Haeundae BBQ' }
+    { value: 'geumsubokguk', name: 'Geumsubokguk (금수복국)', price: 15 },
+    { value: 'obok', name: 'Obok Restaurant (오복미역)', price: 14 },
+    { value: 'ashley', name: 'Ashley Queens Buffet', price: 18 },
+    { value: 'haeundae-market', name: 'Haeundae Traditional Market Food Alley', price: 12 },
+    { value: 'baekhwa', name: 'Baekhwa-jumak (백화주막)', price: 16 },
+    { value: 'haeundae-bbq', name: 'Haeundae BBQ', price: 20 }
   ];
 
   const serviceOptions = [
@@ -43,12 +47,12 @@ const CustomTourBuilder = () => {
   ];
 
   const eveningOptions = [
-    { value: 'fingers-chat', name: 'Fingers & Chat', price: 20 },
-    { value: 'sky-lounge', name: 'Sky Lounge @ LCT Tower (SIGNIEL Hotel)', price: 20 },
-    { value: 'waveon', name: 'Waveon Coffee Rooftop', price: 20 },
-    { value: 'bay101', name: 'The Bay 101 Lounge Bar', price: 20 },
-    { value: 'maison', name: 'Maison de la Cité', price: 20 },
-    { value: 'cielo', name: 'Cielo Italian restaurant', price: 20 }
+    { value: 'fingers-chat', name: 'Fingers & Chat', price: EVENING_PRICE },
+    { value: 'sky-lounge', name: 'Sky Lounge @ LCT Tower (SIGNIEL Hotel)', price: EVENING_PRICE },
+    { value: 'waveon', name: 'Waveon Coffee Rooftop', price: EVENING_PRICE },
+    { value: 'bay101', name: 'The Bay 101 Lounge Bar', price: EVENING_PRICE },
+    { value: 'maison', name: 'Maison de la Cité', price: EVENING_PRICE },
+    { value: 'cielo', name: 'Cielo Italian restaurant', price: EVENING_PRICE }
   ];
 
   const handleLocationChange = (locationValue) => {
@@ -76,12 +80,12 @@ const CustomTourBuilder = () => {
   };
 
   const calculateTotalCost = () => {
-    const locationCost = selectedLocations.length * 49.99;
+    const locationCost = selectedLocations.length * LOCATION_PRICE;
     const serviceCost = selectedServices.reduce((total, service) => {
       const serviceOption = serviceOptions.find(s => s.value === service);
       return total + (serviceOption ? serviceOption.price : 0);
     }, 0);
-    const eveningCost = selectedEvening ? 20 : 0;
+    const eveningCost = selectedEvening ? EVENING_PRICE : 0;
     
     return locationCost + serviceCost + eveningCost;
   };
@@ -125,7 +129,7 @@ const CustomTourBuilder = () => {
     }
 
     summary += `\n⏰ Estimated Duration: ${selectedLocations.length} hours + lunch + extras`;
-    summary += `\n💰 Total Cost: $${totalCost.toFixed(2)}`;
+    summary += `\n💰 Total Cost: ${formatUSD(totalCost)}`;
 
     return summary;
   };
@@ -138,7 +142,7 @@ const CustomTourBuilder = () => {
     let breakdown = 'Cost Breakdown:\n\n';
     
     // Locations
-    breakdown += `📍 Locations (${selectedLocations.length} × $49.99): $${(selectedLocations.length * 49.99).toFixed(2)}\n`;
+    breakdown += `📍 Locations (${selectedLocations.length} × ${formatUSD(LOCATION_PRICE)}): ${formatUSD(selectedLocations.length * LOCATION_PRICE)}\n`;
     
     // Services
     if (selectedServices.length > 0) {
@@ -146,17 +150,17 @@ const CustomTourBuilder = () => {
       selectedServices.forEach(service => {
         const serviceOption = serviceOptions.find(s => s.value === service);
         if (serviceOption) {
-          breakdown += `  • ${serviceOption.name}: $${serviceOption.price.toFixed(2)}\n`;
+          breakdown += `  • ${serviceOption.name}: ${formatUSD(serviceOption.price)}\n`;
         }
       });
     }
     
     // Evening
     if (selectedEvening) {
-      breakdown += `\n🌙 Evening Option: $20.00\n`;
+      breakdown += `\n🌙 Evening Option: ${formatUSD(EVENING_PRICE)}\n`;
     }
     
-    breakdown += `\n💳 Total: $${totalCost.toFixed(2)}`;
+    breakdown += `\n💳 Total: ${formatUSD(totalCost)}`;
     
     return breakdown;
   };
@@ -218,7 +222,7 @@ const CustomTourBuilder = () => {
         <div className="tour-builder">
           {/* Step 1: Locations */}
           <div className="builder-step">
-            <h3>Step 1: Choose Your Locations (4-5 locations, $49.99 each)</h3>
+            <h3>Step 1: Choose Your Locations (4-5 locations, $50 each)</h3>
             <div className="location-options">
               {locationOptions.map((location) => (
                 <label 
@@ -233,7 +237,7 @@ const CustomTourBuilder = () => {
                   <span className="option-content">
                     <i className={location.icon}></i>
                     <span>{location.name}</span>
-                    <span className="price">${location.price}</span>
+                    <span className="price">{formatUSD(location.price)}</span>
                   </span>
                 </label>
               ))}
@@ -245,7 +249,7 @@ const CustomTourBuilder = () => {
 
           {/* Step 2: Lunch */}
           <div className="builder-step">
-            <h3>Step 2: Choose Your Lunch Option (Self-covered)</h3>
+            <h3>Step 2: Choose Your Lunch Option (Self-covered, priced in USD)</h3>
             <div className="lunch-options">
               {lunchOptions.map((lunch) => (
                 <label key={lunch.value} className="lunch-option">
@@ -259,6 +263,7 @@ const CustomTourBuilder = () => {
                   <span className="option-content">
                     <i className="fas fa-utensils"></i>
                     <span>{lunch.name}</span>
+                    <span className="price">{formatUSD(lunch.price)} per person</span>
                   </span>
                 </label>
               ))}
@@ -267,7 +272,7 @@ const CustomTourBuilder = () => {
 
           {/* Step 3: Extra Services */}
           <div className="builder-step">
-            <h3>Step 3: Extra Services (Optional - Self-covered)</h3>
+            <h3>Step 3: Extra Services (USD add-ons)</h3>
             <div className="extra-services">
               {serviceOptions.map((service) => (
                 <label key={service.value} className="service-option">
@@ -288,7 +293,7 @@ const CustomTourBuilder = () => {
 
           {/* Step 4: Evening Options */}
           <div className="builder-step">
-            <h3>Step 4: Evening Options (Optional - Self-covered)</h3>
+            <h3>Step 4: Evening Options (Pay on-site in USD)</h3>
             <div className="evening-options">
               {eveningOptions.map((evening) => (
                 <label key={evening.value} className="evening-option">
@@ -308,7 +313,7 @@ const CustomTourBuilder = () => {
               ))}
             </div>
             <div className="evening-note">
-              <p><strong>Note:</strong> Each evening option costs $20 but customers must cover this cost themselves.</p>
+              <p><strong>Note:</strong> Each evening option costs {formatUSD(EVENING_PRICE)} and is paid directly to the venue.</p>
             </div>
           </div>
 
@@ -327,7 +332,8 @@ const CustomTourBuilder = () => {
               </div>
               <div className="total-cost">
                 <h4>💳 Total Cost</h4>
-                <div id="total-cost">${totalCost.toFixed(2)}</div>
+                <div id="total-cost">{formatUSD(totalCost)}</div>
+                <p className="usd-note">All prices are listed in USD for international travelers.</p>
               </div>
             </div>
             <div className="summary-actions">

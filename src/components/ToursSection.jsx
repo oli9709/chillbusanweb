@@ -9,7 +9,7 @@ const ToursSection = () => {
       title: '🌟 Busan Hidden Gems, Beaches & Local Food',
       duration: '6-7 hours',
       guests: 'Up to 4 guests',
-      price: '289,000 KRW per group',
+      price: '$222 per group',
       includes: 'Private driver-guide • Hotel pickup/drop-off • All entrance fees • Water & snacks • Photo service',
       highlights: [
         '🏘️ Gamcheon Culture Village - Artistic alleyways & murals',
@@ -26,7 +26,7 @@ const ToursSection = () => {
       title: '🌟 K-Drama Day Tour with Pet Café & Picnic',
       duration: '6-7 hours',
       guests: 'Up to 4 guests',
-      price: '289,000 KRW per group',
+      price: '$222 per group',
       includes: 'Private driver-guide • Hotel pickup/drop-off • All entrance fees • Water & snacks • Photo service',
       highlights: [
         '📺 Visit famous K-Drama filming locations',
@@ -56,7 +56,7 @@ const ToursSection = () => {
               <div className="tour-highlights">
                 <span><i className="far fa-clock"></i> {tour.duration}</span>
                 <span><i className="fas fa-users"></i> {tour.guests}</span>
-                <span><i className="fas fa-won-sign"></i> {tour.price}</span>
+                <span><i className="fas fa-dollar-sign"></i> {tour.price}</span>
               </div>
               <div className="tour-includes">
                 <p>Includes: {tour.includes}</p>

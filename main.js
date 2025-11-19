@@ -1150,6 +1150,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const tourSummaryContent = document.getElementById('tour-summary-content');
     const costBreakdownContent = document.getElementById('cost-breakdown-content');
     const totalCostElement = document.getElementById('total-cost');
+    const LOCATION_PRICE = 50;
+    const EVENING_PRICE = 15;
+
+    function formatUSD(amount) {
+        return `$${Number(amount).toFixed(0)}`;
+    }
 
     // Location options change handler
     locationOptions.forEach(option => {
@@ -1274,12 +1280,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add evening option
         if (selectedEvening) {
             const eveningNames = {
-                'fingers-chat': '🍸 Fingers & Chat ($20)',
-                'sky-lounge': '🏢 Sky Lounge @ LCT Tower (SIGNIEL Hotel) ($20)',
-                'waveon': '☕ Waveon Coffee Rooftop ($20)',
-                'bay101': '🍸 The Bay 101 Lounge Bar ($20)',
-                'maison': '🍸 Maison de la Cité ($20)',
-                'cielo': '🍝 Cielo Italian restaurant ($20)'
+                'fingers-chat': `🍸 Fingers & Chat ($${EVENING_PRICE})`,
+                'sky-lounge': `🏢 Sky Lounge @ LCT Tower (SIGNIEL Hotel) ($${EVENING_PRICE})`,
+                'waveon': `☕ Waveon Coffee Rooftop ($${EVENING_PRICE})`,
+                'bay101': `🍸 The Bay 101 Lounge Bar ($${EVENING_PRICE})`,
+                'maison': `🍸 Maison de la Cité ($${EVENING_PRICE})`,
+                'cielo': `🍝 Cielo Italian restaurant ($${EVENING_PRICE})`
             };
             summary += `<p><strong>Evening Option:</strong> ${eveningNames[selectedEvening] || selectedEvening}</p>`;
         }
@@ -1297,9 +1303,9 @@ document.addEventListener('DOMContentLoaded', function() {
         let breakdown = '<ul>';
 
         // Calculate location costs
-        const locationCost = selectedLocations.length * 49.99;
+        const locationCost = selectedLocations.length * LOCATION_PRICE;
         totalCost += locationCost;
-        breakdown += `<li><strong>Locations (${selectedLocations.length}):</strong> $${locationCost.toFixed(2)}</li>`;
+        breakdown += `<li><strong>Locations (${selectedLocations.length}):</strong> ${formatUSD(locationCost)}</li>`;
 
         // Calculate service costs
         const servicePrices = {
@@ -1316,19 +1322,19 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedServices.forEach(service => {
             const price = servicePrices[service] || 0;
             serviceCost += price;
-            breakdown += `<li><strong>${getServiceName(service)}:</strong> $${price.toFixed(2)}</li>`;
+            breakdown += `<li><strong>${getServiceName(service)}:</strong> ${formatUSD(price)}</li>`;
         });
 
         if (serviceCost > 0) {
             totalCost += serviceCost;
-            breakdown += `<li><strong>Total Services:</strong> $${serviceCost.toFixed(2)}</li>`;
+            breakdown += `<li><strong>Total Services:</strong> ${formatUSD(serviceCost)}</li>`;
         }
 
         breakdown += '</ul>';
-        breakdown += '<p><em>Note: Lunch and evening options are self-covered by customers.</em></p>';
+        breakdown += '<p><em>Note: Lunch and evening options are self-covered by customers and priced in USD.</em></p>';
 
         costBreakdownContent.innerHTML = breakdown;
-        totalCostElement.textContent = `$${totalCost.toFixed(2)}`;
+        totalCostElement.textContent = formatUSD(totalCost);
     }
 
     function getServiceName(service) {
@@ -1497,7 +1503,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .map(option => option.value)[0];
 
         // Calculate total cost
-        const locationCost = selectedLocations.length * 49.99;
+        const locationCost = selectedLocations.length * LOCATION_PRICE;
         const servicePrices = {
             'hanbok': 19, 'fireworks': 15, 'souvenir': 15, 'postcard': 5,
             'instagram': 10, 'picnic': 30, 'video-editing': 50
@@ -1506,7 +1512,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalCost = locationCost + serviceCost;
 
         // Show confirmation dialog
-        const confirmationMessage = `Are you sure you want to send this tour inquiry?\n\n⚠️ Note: You cannot change the tour once sent!\n\nSelected Locations: ${selectedLocations.length}\nTotal Cost: $${totalCost.toFixed(2)}\n\nClick OK to continue or Cancel to review your selections.`;
+        const confirmationMessage = `Are you sure you want to send this tour inquiry?\n\n⚠️ Note: You cannot change the tour once sent!\n\nSelected Locations: ${selectedLocations.length}\nTotal Cost: ${formatUSD(totalCost)}\n\nClick OK to continue or Cancel to review your selections.`;
         
         if (!confirm(confirmationMessage)) {
             return;
@@ -1525,9 +1531,9 @@ ${selectedLunch ? `Lunch Option: ${getLocationName(selectedLunch)}` : ''}
 ${selectedServices.length > 0 ? `Extra Services: ${selectedServices.map(s => getServiceName(s)).join(', ')}` : ''}
 ${selectedEvening ? `Evening Option: ${getLocationName(selectedEvening)}` : ''}
 
-Total Cost: $${totalCost.toFixed(2)}
-- Locations: $${locationCost.toFixed(2)}
-- Services: $${serviceCost.toFixed(2)}
+Total Cost: ${formatUSD(totalCost)}
+- Locations: ${formatUSD(locationCost)}
+- Services: ${formatUSD(serviceCost)}
 
 Please contact me to discuss this custom tour.
 
@@ -1776,30 +1782,30 @@ function createEmergencyCustomTourSection() {
         <div class="custom-tour-container">
             <div class="tour-builder">
                 <div class="builder-step">
-                    <h3>Step 1: Choose Your Locations (4-5 locations, $49.99 each)</h3>
+                    <h3>Step 1: Choose Your Locations (4-5 locations, $50 each)</h3>
                     <div class="location-options">
                         <label class="location-option">
-                            <input type="checkbox" name="locations" value="gamcheon" data-price="49.99">
+                            <input type="checkbox" name="locations" value="gamcheon" data-price="50">
                             <span class="option-content">
                                 <i class="fas fa-mountain"></i>
                                 <span>Gamcheon Culture Village</span>
-                                <span class="price">$49.99</span>
+                                <span class="price">$50</span>
                             </span>
                         </label>
                         <label class="location-option">
-                            <input type="checkbox" name="locations" value="gwangalli" data-price="49.99">
+                            <input type="checkbox" name="locations" value="gwangalli" data-price="50">
                             <span class="option-content">
                                 <i class="fas fa-bridge"></i>
                                 <span>Gwangalli Beach & Bridge</span>
-                                <span class="price">$49.99</span>
+                                <span class="price">$50</span>
                             </span>
                         </label>
                         <label class="location-option">
-                            <input type="checkbox" name="locations" value="haeundae" data-price="49.99">
+                            <input type="checkbox" name="locations" value="haeundae" data-price="50">
                             <span class="option-content">
                                 <i class="fas fa-umbrella-beach"></i>
                                 <span>Haeundae Beach</span>
-                                <span class="price">$49.99</span>
+                                <span class="price">$50</span>
                             </span>
                         </label>
                     </div>
@@ -1814,6 +1820,7 @@ function createEmergencyCustomTourSection() {
                         <div class="total-cost">
                             <h4>💳 Total Cost</h4>
                             <div id="total-cost">$0.00</div>
+                            <p class="usd-note">All prices are listed in USD for international travelers.</p>
                         </div>
                     </div>
                     <div class="summary-actions">
