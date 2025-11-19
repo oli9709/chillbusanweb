@@ -11,6 +11,7 @@ const CustomTourBuilder = () => {
   const [costBreakdown, setCostBreakdown] = useState('');
   const LOCATION_PRICE = 50;
   const EVENING_PRICE = 15;
+  const USD_NOTE_TEXT = 'This tour summary displays all prices in USD for easier understanding.';
 
   const formatUSD = (value) => `$${Math.round(value)}`;
 
@@ -130,6 +131,7 @@ const CustomTourBuilder = () => {
 
     summary += `\n⏰ Estimated Duration: ${selectedLocations.length} hours + lunch + extras`;
     summary += `\n💰 Total Cost: ${formatUSD(totalCost)}`;
+    summary += `\n\n${USD_NOTE_TEXT}`;
 
     return summary;
   };
@@ -161,6 +163,7 @@ const CustomTourBuilder = () => {
     }
     
     breakdown += `\n💳 Total: ${formatUSD(totalCost)}`;
+    breakdown += `\n\n${USD_NOTE_TEXT}`;
     
     return breakdown;
   };
@@ -170,7 +173,7 @@ const CustomTourBuilder = () => {
     const breakdown = generateCostBreakdown();
     
     const emailSubject = 'Custom Busan Tour Inquiry';
-    const emailBody = `Hello Chill Busan Tours,\n\nI'm interested in booking a custom tour with the following details:\n\n${summary}\n\n${breakdown}\n\nPlease contact me to arrange this tour.\n\nBest regards`;
+    const emailBody = `Hello Chill Busan Tours,\n\nI'm interested in booking a custom tour with the following details:\n\n${summary}\n\n${breakdown}\n\nPlease contact me to arrange this tour.\n\nBest regards\n\n${USD_NOTE_TEXT}`;
     
     const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
     

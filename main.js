@@ -1152,6 +1152,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalCostElement = document.getElementById('total-cost');
     const LOCATION_PRICE = 50;
     const EVENING_PRICE = 15;
+    const USD_NOTE_TEXT = 'This tour summary displays all prices in USD for easier understanding.';
 
     function formatUSD(amount) {
         return `$${Number(amount).toFixed(0)}`;
@@ -1290,6 +1291,7 @@ document.addEventListener('DOMContentLoaded', function() {
             summary += `<p><strong>Evening Option:</strong> ${eveningNames[selectedEvening] || selectedEvening}</p>`;
         }
 
+        summary += `<p class="usd-note">${USD_NOTE_TEXT}</p>`;
         summary += '</div>';
 
         tourSummaryContent.innerHTML = summary;
@@ -1429,6 +1431,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         detailedSummary += '<p class="summary-note">💡 <strong>Note:</strong> This is your personalized itinerary. Your guide will optimize the route for the best experience.</p>';
+        detailedSummary += `<p class="usd-note">${USD_NOTE_TEXT}</p>`;
         detailedSummary += '</div>';
 
         tourSummaryContent.innerHTML = detailedSummary;
@@ -1537,7 +1540,9 @@ Total Cost: ${formatUSD(totalCost)}
 
 Please contact me to discuss this custom tour.
 
-Thank you!`;
+Thank you!
+
+${USD_NOTE_TEXT}`;
 
         // Open email client
         const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
