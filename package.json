@@ -18,7 +18,9 @@
     "url": "https://github.com/oli9709/chillbusanweb/issues"
   },
   "homepage": "https://github.com/oli9709/chillbusanweb#readme",
-  "devDependencies": {
+  "dependencies": {
+    "@netlify/neon": "^0.1.0",
+    "nodemailer": "^7.0.10",
     "pdfkit": "^0.17.2"
   }
 }
