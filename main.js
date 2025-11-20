@@ -1513,91 +1513,105 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const numberOfGuests = parseInt(prompt('Number of guests:', '1')) || 1;
 
+        const customerPhone = prompt('Please enter your phone number (optional):', '');
+        
         // Show confirmation dialog
-        const confirmationMessage = `Confirm Booking?\n\nName: ${customerName}\nEmail: ${customerEmail}\nTour Date: ${tourDate}\nStart Time: ${startTime}\nGuests: ${numberOfGuests}\nTotal Cost: ${formatUSD(totalCost)}\n\nClick OK to confirm and receive your PDF confirmation.`;
+        const confirmationMessage = `Confirm Booking?\n\nName: ${customerName}\nEmail: ${customerEmail}\n${customerPhone ? `Phone: ${customerPhone}\n` : ''}Tour Date: ${tourDate}\nStart Time: ${startTime}\nGuests: ${numberOfGuests}\nTotal Cost: ${formatUSD(totalCost)}\n\nClick OK to confirm and receive your PDF confirmation.`;
         
         if (!confirm(confirmationMessage)) {
             return;
         }
 
-        // Prepare booking details for PDF generation
-        const bookingDetails = {
-            customerName: customerName,
-            customerEmail: customerEmail,
-            tourName: 'Custom Tour',
-            tourDate: tourDate,
-            startTime: startTime,
-            locations: selectedLocations.map(loc => getLocationName(loc)),
-            optionalActivities: [
-                ...(selectedLunch ? [`Lunch: ${getLocationName(selectedLunch)}`] : []),
-                ...selectedServices.map(s => getServiceName(s)),
-                ...(selectedEvening ? [`Evening: ${getLocationName(selectedEvening)}`] : [])
-            ],
-            totalPrice: totalCost,
-            numberOfGuests: numberOfGuests,
-            meetingLocation: 'Haeundae Beach',
-            bookingId: typeof generateBookingId !== 'undefined' ? generateBookingId() : `CBT-${Date.now()}`
+        // Prepare booking data for createBooking API
+        // Ensure all values are properly formatted
+        const addons = [
+            ...(selectedLunch ? [`Lunch: ${getLocationName(selectedLunch)}`] : []),
+            ...selectedServices.map(s => getServiceName(s)),
+            ...(selectedEvening ? [`Evening: ${getLocationName(selectedEvening)}`] : [])
+        ];
+
+        // Normalize date to YYYY-MM-DD format (remove any time data)
+        const normalizedDate = tourDate.trim().slice(0, 10);
+
+        const bookingData = {
+            name: customerName.trim(),
+            email: customerEmail.trim(),
+            phone: (customerPhone || '').trim(),
+            tour: 'Custom Tour',
+            date: normalizedDate,
+            people: Number(numberOfGuests), // Ensure it's a number
+            addons: addons, // Array will be converted to string in API
+            totalPrice: Number(totalCost) // Ensure it's a number, not formatted string
         };
 
-        // Try to send booking confirmation with PDF
-        try {
-            if (typeof sendBookingConfirmation !== 'undefined') {
-                // Show loading message
-                const loadingMsg = document.createElement('div');
-                loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000;';
-                loadingMsg.innerHTML = '<p>Processing your booking...</p><p>Generating confirmation PDF...</p>';
-                document.body.appendChild(loadingMsg);
+        // Show loading message
+        const loadingMsg = document.createElement('div');
+        loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000; text-align: center; min-width: 250px;';
+        loadingMsg.innerHTML = '<div style="margin-bottom: 15px;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #4A90E2;"></i></div><p style="margin: 0; font-weight: 600;">Processing your booking...</p><p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #666;">Please wait...</p>';
+        document.body.appendChild(loadingMsg);
 
-                const result = await sendBookingConfirmation(bookingDetails);
+        // Send booking to createBooking API
+        try {
+            if (typeof createBooking !== 'undefined') {
+                const result = await createBooking(bookingData);
                 
                 // Remove loading message
-                document.body.removeChild(loadingMsg);
+                if (loadingMsg.parentNode) {
+                    document.body.removeChild(loadingMsg);
+                }
 
-                // Show success
-                alert(`✅ Booking confirmed!\n\nBooking ID: ${result.bookingId}\n\nA confirmation email with PDF has been sent to:\n${customerEmail}\n\nPlease check your inbox.`);
+                // Show success message
+                const successMsg = document.createElement('div');
+                successMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000; text-align: center; min-width: 300px; max-width: 400px;';
+                successMsg.innerHTML = `
+                    <div style="margin-bottom: 15px; color: #27ae60; font-size: 3rem;">✓</div>
+                    <h3 style="margin: 0 0 10px 0; color: #2c3e50;">Booking Confirmed!</h3>
+                    <p style="margin: 5px 0; color: #34495e;"><strong>Booking ID:</strong> ${result.bookingId}</p>
+                    <p style="margin: 10px 0; color: #34495e; font-size: 0.9rem;">A confirmation email with PDF has been sent to:</p>
+                    <p style="margin: 5px 0; color: #4A90E2; font-weight: 600;">${customerEmail}</p>
+                    <p style="margin: 15px 0 0 0; color: #7f8c8d; font-size: 0.85rem;">Please check your inbox.</p>
+                    <button onclick="this.parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #4A90E2; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Close</button>
+                `;
+                document.body.appendChild(successMsg);
+                
+                // Auto-remove success message after 10 seconds
+                setTimeout(() => {
+                    if (successMsg.parentNode) {
+                        document.body.removeChild(successMsg);
+                    }
+                }, 10000);
                 
                 // Show success animation
                 showSuccessAnimation();
             } else {
-                // Fallback to email if API not available
-                throw new Error('Booking API not loaded');
+                throw new Error('Booking API not loaded. Please refresh the page and try again.');
             }
         } catch (error) {
-            console.error('Error sending booking confirmation:', error);
+            console.error('Error creating booking:', error);
             
-            // Fallback to email client
-            const subject = 'Custom Tour Inquiry - Chill Busan Tours';
-            const body = `Hi Chill Busan Tours,
-
-I'm interested in a custom tour with the following details:
-
-Name: ${customerName}
-Email: ${customerEmail}
-Tour Date: ${tourDate}
-Start Time: ${startTime}
-Number of Guests: ${numberOfGuests}
-
-Selected Locations (${selectedLocations.length}):
-${selectedLocations.map(loc => `- ${getLocationName(loc)}`).join('\n')}
-
-${selectedLunch ? `Lunch Option: ${getLocationName(selectedLunch)}` : ''}
-${selectedServices.length > 0 ? `Extra Services: ${selectedServices.map(s => getServiceName(s)).join(', ')}` : ''}
-${selectedEvening ? `Evening Option: ${getLocationName(selectedEvening)}` : ''}
-
-Total Cost: ${formatUSD(totalCost)}
-- Locations: ${formatUSD(locationCost)}
-- Services: ${formatUSD(serviceCost)}
-
-Please contact me to discuss this custom tour.
-
-Thank you!
-
-${USD_NOTE_TEXT}`;
-
-            const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.open(mailtoLink);
+            // Remove loading message
+            if (loadingMsg.parentNode) {
+                document.body.removeChild(loadingMsg);
+            }
             
-            alert('Booking API unavailable. Opening email client instead. Please send the email to complete your booking.');
+            // Show error message (DO NOT open email client)
+            const errorMsg = document.createElement('div');
+            errorMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000; text-align: center; min-width: 300px; max-width: 400px;';
+            errorMsg.innerHTML = `
+                <div style="margin-bottom: 15px; color: #e74c3c; font-size: 3rem;">✗</div>
+                <h3 style="margin: 0 0 10px 0; color: #2c3e50;">Booking Failed</h3>
+                <p style="margin: 10px 0; color: #34495e;">${error.message || 'Failed to create booking. Please try again.'}</p>
+                <p style="margin: 15px 0 0 0; color: #7f8c8d; font-size: 0.85rem;">If the problem persists, please contact us directly.</p>
+                <button onclick="this.parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Close</button>
+            `;
+            document.body.appendChild(errorMsg);
+            
+            // Auto-remove error message after 10 seconds
+            setTimeout(() => {
+                if (errorMsg.parentNode) {
+                    document.body.removeChild(errorMsg);
+                }
+            }, 10000);
         }
     }
 

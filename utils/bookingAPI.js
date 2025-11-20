@@ -4,7 +4,43 @@
  */
 
 /**
- * Send booking confirmation with PDF generation
+ * Create a new booking using the createBooking API
+ * @param {Object} bookingData - Booking information
+ * @param {string} bookingData.name - Customer's full name
+ * @param {string} bookingData.email - Customer's email
+ * @param {string} bookingData.phone - Customer's phone number
+ * @param {string} bookingData.tour - Tour name
+ * @param {string} bookingData.date - Tour date (YYYY-MM-DD)
+ * @param {number} bookingData.people - Number of people
+ * @param {Array<string>} bookingData.addons - List of add-ons
+ * @param {number} bookingData.totalPrice - Total price in USD
+ * @returns {Promise<Object>} API response
+ */
+async function createBooking(bookingData) {
+    try {
+        const response = await fetch('/.netlify/functions/createBooking', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(bookingData)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || result.error || 'Failed to create booking');
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Error creating booking:', error);
+        throw error;
+    }
+}
+
+/**
+ * Send booking confirmation with PDF generation (legacy function for backward compatibility)
  * @param {Object} bookingDetails - Booking information
  * @param {string} bookingDetails.customerName - Customer's full name
  * @param {string} bookingDetails.customerEmail - Customer's email
@@ -69,12 +105,13 @@ function generateBookingId() {
 
 // Export for use in browser
 if (typeof window !== 'undefined') {
+    window.createBooking = createBooking;
     window.sendBookingConfirmation = sendBookingConfirmation;
     window.generateBookingId = generateBookingId;
 }
 
 // Export for Node.js
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { sendBookingConfirmation, generateBookingId };
+    module.exports = { createBooking, sendBookingConfirmation, generateBookingId };
 }
 
