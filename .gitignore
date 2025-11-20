@@ -1,0 +1,4 @@
+temp_pdfs/
+node_modules/
+*.log
+.DS_Store

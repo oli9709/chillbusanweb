@@ -75,6 +75,13 @@
   font-size: 0.9rem;
 }
 
+.footer .usd-banner {
+  margin-top: 5px;
+  font-size: 0.9rem;
+  opacity: 0.85;
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .footer-nav {
   display: flex;
   gap: 20px;

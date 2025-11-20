@@ -70,6 +70,13 @@
   color: var(--primary-color);
 }
 
+.price-note {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
 .tour-includes {
   background: var(--light-bg);
   padding: 20px;

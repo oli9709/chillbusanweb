@@ -111,6 +111,15 @@
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
+.usd-banner {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #ffffff;
+  opacity: 0.85;
+  margin: -20px auto 50px;
+  max-width: 600px;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .brand-name {

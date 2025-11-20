@@ -20,7 +20,7 @@ const Navigation = () => {
         <li><Link to="/">Home</Link></li>
         <li><Link to="/#tours">Tours</Link></li>
         <li><Link to="/custom-tour">Custom Tour</Link></li>
-        <li><Link to="/#gallery">Gallery</Link></li>
+        <li><Link to="/#stories">Stories</Link></li>
         <li><Link to="/#events">Events</Link></li>
         <li><Link to="/#contact">Contact</Link></li>
         
@@ -47,7 +47,7 @@ const Navigation = () => {
         <li><Link to="/" onClick={toggleMobileMenu}>Home</Link></li>
         <li><Link to="/#tours" onClick={toggleMobileMenu}>Tours</Link></li>
         <li><Link to="/custom-tour" onClick={toggleMobileMenu}>Custom Tour</Link></li>
-        <li><Link to="/#gallery" onClick={toggleMobileMenu}>Gallery</Link></li>
+        <li><Link to="/#stories" onClick={toggleMobileMenu}>Stories</Link></li>
         <li><Link to="/#events" onClick={toggleMobileMenu}>Events</Link></li>
         <li><Link to="/#contact" onClick={toggleMobileMenu}>Contact</Link></li>
         

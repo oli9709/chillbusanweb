@@ -48,6 +48,7 @@ const Footer = () => {
         <div className="footer-info">
           <p>© 2024 Chill Busan Tours. All rights reserved.</p>
           <p>Tour Agency • Busan, South Korea</p>
+          <p className="usd-banner">Chill Busan Tours uses USD pricing for international customers.</p>
           <nav className="footer-nav">
             <button onClick={() => scrollToSection('hero')}>Home</button>
             <button onClick={() => scrollToSection('tours')}>Tours</button>

@@ -30,6 +30,7 @@ const HeroSection = () => {
   }, []);
 
   return (
+    <>
     <header className="hero section" id="hero">
       <div className="video-background">
         <div className="video-container active">
@@ -73,6 +74,8 @@ const HeroSection = () => {
         <a href="#tours" className="cta-button">Start Your Journey</a>
       </div>
     </header>
+    <p className="usd-banner">Chill Busan Tours uses USD pricing for international customers.</p>
+    </>
   );
 };
 

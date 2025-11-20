@@ -58,6 +58,7 @@ const ToursSection = () => {
                 <span><i className="fas fa-users"></i> {tour.guests}</span>
                 <span><i className="fas fa-dollar-sign"></i> {tour.price}</span>
               </div>
+              <p className="price-note">All prices in USD.</p>
               <div className="tour-includes">
                 <p>Includes: {tour.includes}</p>
               </div>

@@ -53,16 +53,14 @@ function handleError(error, context) {
     }
 }
 
+// Debug counter
+let errorCount = 0;
+
 // Global error handler for mobile
 window.addEventListener('error', function(e) {
     errorCount++;
     handleError(e.error, 'global error');
 });
-
-// Log mobile detection
-console.log('Mobile device detected:', isMobile());
-console.log('User agent:', navigator.userAgent);
-console.log('Viewport width:', window.innerWidth);
 
 // Force hide debug elements on window load too
 window.addEventListener('load', function() {
@@ -99,7 +97,7 @@ class CommentsManager {
         this.setLoading(true);
 
         try {
-            console.log('Posting comment:', { name, text });
+            // Posting comment
             const response = await fetch('/.netlify/functions/comments', {
                 method: 'POST',
                 headers: {
@@ -108,14 +106,14 @@ class CommentsManager {
                 body: JSON.stringify({ name, text })
             });
 
-            console.log('Post response status:', response.status);
+            // Response received
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
-            console.log('Post result:', result);
+            // Comment posted successfully
 
             if (result.success) {
                 this.showMessage('Comment posted successfully!', 'success');
@@ -135,16 +133,16 @@ class CommentsManager {
 
     async loadComments() {
         try {
-            console.log('Loading comments...');
+            // Loading comments
             const response = await fetch('/.netlify/functions/comments');
-            console.log('Response status:', response.status);
+            // Comments response received
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const result = await response.json();
-            console.log('Comments result:', result);
+            // Comments loaded
 
             if (result.success) {
                 this.displayComments(result.comments);
@@ -238,50 +236,23 @@ class CommentsManager {
 
 // Initialize comments when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing comments...');
+    // DOM loaded, initializing comments
     
     // Check if comment elements exist
     const commentsSection = document.getElementById('comments');
     const commentsList = document.getElementById('commentsList');
     const commentForm = document.getElementById('commentForm');
     
-    console.log('Comment elements found:', {
-        commentsSection: !!commentsSection,
-        commentsList: !!commentsList,
-        commentForm: !!commentForm
-    });
-    
-    // Additional debugging
-    if (commentsSection) {
-        console.log('Comments section styles:', window.getComputedStyle(commentsSection));
-        console.log('Comments section display:', window.getComputedStyle(commentsSection).display);
-        console.log('Comments section visibility:', window.getComputedStyle(commentsSection).visibility);
-    }
-    
-    // Check if comment section is in the DOM
-    const allSections = document.querySelectorAll('section');
-    console.log('All sections found:', Array.from(allSections).map(s => ({ id: s.id, class: s.className })));
-    
-    // Search for comment-related elements
-    const commentElements = document.querySelectorAll('[id*="comment"], [class*="comment"]');
-    console.log('Comment-related elements:', Array.from(commentElements).map(el => ({ 
-        tag: el.tagName, 
-        id: el.id, 
-        class: el.className,
-        text: el.textContent?.substring(0, 50) + '...'
-    })));
+    // Comment elements found - debug disabled for production
     
     if (commentsSection && commentsList && commentForm) {
         new CommentsManager();
-        console.log('CommentsManager initialized successfully');
+        // CommentsManager initialized successfully
     } else {
         console.error('Comment elements not found! Check HTML structure.');
-        console.log('Make sure the comment section HTML is included in the deployed version.');
+        // Make sure the comment section HTML is included in the deployed version
     }
 });
-
-// Debug counter
-let errorCount = 0;
 
 // ======================
 // Recent Tours / Stories
@@ -362,19 +333,20 @@ let errorCount = 0;
                 
                 gal.appendChild(video);
             } else {
-                const img = document.createElement('img');
-                img.src = src;
-                img.alt = story.tour;
-                img.loading = 'lazy';
-                img.style.width = '100%';
-                img.style.height = 'auto';
-                img.style.objectFit = 'cover';
-                
-                img.onerror = function() {
-                    console.error('Failed to load image:', src);
-                };
-                
-                gal.appendChild(img);
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = story.tour;
+                    img.loading = 'lazy';
+                    img.style.width = '100%';
+                    img.style.height = 'auto';
+                    img.style.objectFit = 'cover';
+                    img.decoding = 'async'; // Better performance
+                    
+                    img.onerror = function() {
+                        console.error('Failed to load image:', src);
+                    };
+                    
+                    gal.appendChild(img);
             }
         });
         document.getElementById('storyModalCaption').textContent = story.caption || '';
@@ -420,11 +392,11 @@ let errorCount = 0;
                     // Auto-play the video thumbnail
                     const video = card.querySelector('video');
                     if (video) {
-                        video.play().catch(e => console.log('Video autoplay prevented:', e));
+                        video.play().catch(() => {}); // Video autoplay prevented (silent)
                     }
                 } else {
                     card.innerHTML = `
-                        <img class="story-thumb" src="${thumb}" alt="${story.tour}" loading="lazy">
+                        <img class="story-thumb" src="${thumb}" alt="${story.tour}" loading="lazy" decoding="async" width="400" height="220">
                         <div class="story-body">
                             <div class="story-meta"><i class="far fa-calendar"></i> ${formatDate(story.date)} • ${story.tour}</div>
                             <h4 class="story-title">${story.caption ? story.caption : story.tour}</h4>
@@ -567,7 +539,7 @@ let errorCount = 0;
                 if (e.target === modal) closeModal();
             });
             
-            console.log('New story JSON:', jsonToAdd);
+            // New story JSON generated
             
         } catch (error) {
             console.error('Error adding story:', error);
@@ -600,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!loadingHidden && mobileLoading) {
                 loadingHidden = true;
                 mobileLoading.classList.add('hidden');
-                console.log('Mobile loading hidden');
+                // Mobile loading hidden
             }
         }
         
@@ -624,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (mobileLoading) {
                 mobileLoading.style.display = 'none';
                 mobileLoading.remove();
-                console.log('Emergency mobile loading removal');
+                // Emergency mobile loading removal
             }
         }, 3000);
         
@@ -1478,7 +1450,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return eveningDescriptions[evening] || evening;
     }
 
-    function contactAboutCustomTour() {
+    async function contactAboutCustomTour() {
         const selectedLocations = Array.from(locationOptions)
             .filter(option => option.checked)
             .map(option => option.value);
@@ -1514,18 +1486,96 @@ document.addEventListener('DOMContentLoaded', function() {
         const serviceCost = selectedServices.reduce((total, service) => total + (servicePrices[service] || 0), 0);
         const totalCost = locationCost + serviceCost;
 
+        // Collect customer information
+        const customerName = prompt('Please enter your name:');
+        if (!customerName) {
+            alert('Name is required to complete booking.');
+            return;
+        }
+
+        const customerEmail = prompt('Please enter your email:');
+        if (!customerEmail || !customerEmail.includes('@')) {
+            alert('Valid email is required to complete booking.');
+            return;
+        }
+
+        const tourDate = prompt('Please enter your preferred tour date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+        if (!tourDate) {
+            alert('Tour date is required.');
+            return;
+        }
+
+        const startTime = prompt('Please enter your preferred start time (HH:MM):', '09:00');
+        if (!startTime) {
+            alert('Start time is required.');
+            return;
+        }
+
+        const numberOfGuests = parseInt(prompt('Number of guests:', '1')) || 1;
+
         // Show confirmation dialog
-        const confirmationMessage = `Are you sure you want to send this tour inquiry?\n\n⚠️ Note: You cannot change the tour once sent!\n\nSelected Locations: ${selectedLocations.length}\nTotal Cost: ${formatUSD(totalCost)}\n\nClick OK to continue or Cancel to review your selections.`;
+        const confirmationMessage = `Confirm Booking?\n\nName: ${customerName}\nEmail: ${customerEmail}\nTour Date: ${tourDate}\nStart Time: ${startTime}\nGuests: ${numberOfGuests}\nTotal Cost: ${formatUSD(totalCost)}\n\nClick OK to confirm and receive your PDF confirmation.`;
         
         if (!confirm(confirmationMessage)) {
             return;
         }
 
-        // Create email subject and body
-        const subject = 'Custom Tour Inquiry - Chill Busan Tours';
-        const body = `Hi Chill Busan Tours,
+        // Prepare booking details for PDF generation
+        const bookingDetails = {
+            customerName: customerName,
+            customerEmail: customerEmail,
+            tourName: 'Custom Tour',
+            tourDate: tourDate,
+            startTime: startTime,
+            locations: selectedLocations.map(loc => getLocationName(loc)),
+            optionalActivities: [
+                ...(selectedLunch ? [`Lunch: ${getLocationName(selectedLunch)}`] : []),
+                ...selectedServices.map(s => getServiceName(s)),
+                ...(selectedEvening ? [`Evening: ${getLocationName(selectedEvening)}`] : [])
+            ],
+            totalPrice: totalCost,
+            numberOfGuests: numberOfGuests,
+            meetingLocation: 'Haeundae Beach',
+            bookingId: typeof generateBookingId !== 'undefined' ? generateBookingId() : `CBT-${Date.now()}`
+        };
+
+        // Try to send booking confirmation with PDF
+        try {
+            if (typeof sendBookingConfirmation !== 'undefined') {
+                // Show loading message
+                const loadingMsg = document.createElement('div');
+                loadingMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000;';
+                loadingMsg.innerHTML = '<p>Processing your booking...</p><p>Generating confirmation PDF...</p>';
+                document.body.appendChild(loadingMsg);
+
+                const result = await sendBookingConfirmation(bookingDetails);
+                
+                // Remove loading message
+                document.body.removeChild(loadingMsg);
+
+                // Show success
+                alert(`✅ Booking confirmed!\n\nBooking ID: ${result.bookingId}\n\nA confirmation email with PDF has been sent to:\n${customerEmail}\n\nPlease check your inbox.`);
+                
+                // Show success animation
+                showSuccessAnimation();
+            } else {
+                // Fallback to email if API not available
+                throw new Error('Booking API not loaded');
+            }
+        } catch (error) {
+            console.error('Error sending booking confirmation:', error);
+            
+            // Fallback to email client
+            const subject = 'Custom Tour Inquiry - Chill Busan Tours';
+            const body = `Hi Chill Busan Tours,
 
 I'm interested in a custom tour with the following details:
+
+Name: ${customerName}
+Email: ${customerEmail}
+Tour Date: ${tourDate}
+Start Time: ${startTime}
+Number of Guests: ${numberOfGuests}
 
 Selected Locations (${selectedLocations.length}):
 ${selectedLocations.map(loc => `- ${getLocationName(loc)}`).join('\n')}
@@ -1544,12 +1594,11 @@ Thank you!
 
 ${USD_NOTE_TEXT}`;
 
-        // Open email client
-        const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.open(mailtoLink);
-
-        // Show success animation
-        showSuccessAnimation();
+            const mailtoLink = `mailto:theofficialali05@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.open(mailtoLink);
+            
+            alert('Booking API unavailable. Opening email client instead. Please send the email to complete your booking.');
+        }
     }
 
     function showSuccessAnimation() {
@@ -1706,12 +1755,12 @@ function addMobileScrollIndicator() {
 // Ensure custom tour section is visible on mobile
 function ensureCustomTourVisible() {
     const customTourSection = document.getElementById('custom-tour');
-    console.log('Custom tour section found:', customTourSection);
+    // Custom tour section found
     if (!customTourSection) {
-        console.log('ERROR: Custom tour section not found!');
+        // ERROR: Custom tour section not found
         // Try to find it by class name
         const customTourByClass = document.querySelector('.custom-tour');
-        console.log('Custom tour by class:', customTourByClass);
+        // Custom tour by class found
         return;
     }
     
@@ -1755,23 +1804,23 @@ function ensureCustomTourVisible() {
         tourBuilder.style.padding = '25px';
     }
     
-    console.log('Custom tour section visibility enforced for mobile');
+    // Custom tour section visibility enforced for mobile
 }
 
 // Emergency function to create custom tour section if it doesn't exist
 function createEmergencyCustomTourSection() {
     const existingSection = document.getElementById('custom-tour');
     if (existingSection) {
-        console.log('Custom tour section already exists');
+        // Custom tour section already exists
         return;
     }
     
-    console.log('Creating emergency custom tour section...');
+    // Creating emergency custom tour section
     
     // Find a good place to insert the section (after tours section)
     const toursSection = document.getElementById('tours');
     if (!toursSection) {
-        console.log('Tours section not found, inserting at end of body');
+        // Tours section not found, inserting at end of body
         insertCustomTourAtEnd();
         return;
     }
@@ -1883,7 +1932,7 @@ function createEmergencyCustomTourSection() {
         }
     }
     
-    console.log('Emergency custom tour section created successfully');
+    // Emergency custom tour section created successfully
 }
 
 function insertCustomTourAtEnd() {

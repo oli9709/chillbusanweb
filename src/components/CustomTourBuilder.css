@@ -396,20 +396,38 @@
 
 @media (max-width: 768px) {
   .custom-tour {
-    padding: 60px 0;
+    padding: 48px 0;
   }
 
   .custom-tour h2 {
-    font-size: 2rem;
+    font-size: 1.75rem;
+    margin-bottom: 20px;
   }
 
   .section-intro {
     font-size: 1rem;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
+    padding: 0 16px;
+  }
+
+  .custom-tour-container {
+    padding: 0 16px;
+    gap: 24px;
   }
 
   .tour-builder {
-    padding: 30px 20px;
+    padding: 24px 16px;
+    border-radius: 15px;
+  }
+
+  .builder-step {
+    margin-bottom: 32px;
+  }
+
+  .builder-step h3 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    padding-left: 16px;
   }
 
   .location-options,
@@ -417,37 +435,126 @@
   .extra-services,
   .evening-options {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .option-content {
+    padding: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .option-content span {
+    flex: 1 1 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .option-content .price {
+    flex: 0 0 auto;
+    font-size: 1rem;
+  }
+
+  .tour-summary {
+    padding: 20px 16px;
+    margin-top: 24px;
+  }
+
+  #tour-summary-content {
+    max-height: 250px;
+    padding: 16px;
+    font-size: 0.85rem;
+  }
+
+  .cost-calculator {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  #cost-breakdown-content {
+    font-size: 0.85rem;
+  }
+
+  .total-cost {
+    padding: 20px 16px;
+  }
+
+  #total-cost {
+    font-size: 1.75rem;
+  }
+
+  .usd-note {
+    font-size: 0.85rem;
+    margin-top: 8px;
   }
 
   .summary-actions {
     flex-direction: column;
+    gap: 12px;
   }
 
   .summary-button,
   .contact-button {
-    min-width: auto;
+    min-width: 100%;
+    width: 100%;
+    min-height: 48px;
+    padding: 14px 20px;
+    font-size: 1rem;
+    touch-action: manipulation;
   }
 
   .custom-tour-info {
-    gap: 15px;
+    gap: 16px;
   }
 
   .custom-tour-info .info-card {
-    padding: 20px;
+    padding: 20px 16px;
   }
 }
 
 @media (max-width: 480px) {
+  .custom-tour {
+    padding: 40px 0;
+  }
+
   .custom-tour h2 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+  }
+
+  .section-intro {
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+
+  .custom-tour-container {
+    padding: 0 12px;
+    gap: 20px;
   }
 
   .tour-builder {
-    padding: 25px 15px;
+    padding: 20px 12px;
+  }
+
+  .builder-step {
+    margin-bottom: 24px;
+  }
+
+  .builder-step h3 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    padding-left: 12px;
+  }
+
+  .location-options,
+  .lunch-options,
+  .extra-services,
+  .evening-options {
+    gap: 10px;
   }
 
   .option-content {
-    padding: 15px;
+    padding: 12px;
     gap: 10px;
   }
 
@@ -455,11 +562,52 @@
     font-size: 1.2rem;
   }
 
+  .option-content span {
+    font-size: 0.95rem;
+  }
+
+  .option-content .price {
+    font-size: 0.95rem;
+  }
+
   .tour-summary {
-    padding: 20px;
+    padding: 16px 12px;
+    margin-top: 20px;
+  }
+
+  #tour-summary-content {
+    max-height: 200px;
+    padding: 12px;
+    font-size: 0.8rem;
+  }
+
+  .cost-calculator {
+    gap: 16px;
+  }
+
+  #cost-breakdown-content {
+    font-size: 0.8rem;
+  }
+
+  .total-cost {
+    padding: 16px 12px;
   }
 
   #total-cost {
     font-size: 1.5rem;
+  }
+
+  .usd-note {
+    font-size: 0.8rem;
+  }
+
+  .summary-button,
+  .contact-button {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+  }
+
+  .custom-tour-info .info-card {
+    padding: 16px 12px;
   }
 } 
