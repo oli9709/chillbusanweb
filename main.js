@@ -2,6 +2,115 @@
 // Cache bust: Debug overlay completely removed
 // Cache bust: Comment system added
 
+// ============================================
+// AUTHENTICATION & SESSION HANDLING
+// ============================================
+
+// Global auth state
+let currentUser = null;
+let authInitialized = false;
+
+/**
+ * Initialize authentication and check login state
+ */
+async function initAuth() {
+    if (authInitialized) return currentUser;
+    
+    try {
+        if (typeof window.supabaseAuth !== 'undefined') {
+            const { user, error } = await window.supabaseAuth.getCurrentUser();
+            if (!error && user) {
+                currentUser = user;
+                updateAuthUI(user);
+            } else {
+                currentUser = null;
+                updateAuthUI(null);
+            }
+        }
+        authInitialized = true;
+        return currentUser;
+    } catch (error) {
+        console.log('Auth initialization error:', error);
+        currentUser = null;
+        updateAuthUI(null);
+        return null;
+    }
+}
+
+/**
+ * Update UI based on authentication state
+ */
+function updateAuthUI(user) {
+    const authLink = document.getElementById('auth-link');
+    const authNavItem = document.getElementById('auth-nav-item');
+    
+    if (authLink && authNavItem) {
+        if (user) {
+            authLink.href = 'dashboard.html';
+            authLink.textContent = 'Dashboard';
+            authLink.innerHTML = '<i class="fas fa-user-circle"></i> Dashboard';
+        } else {
+            authLink.href = 'login.html';
+            authLink.textContent = 'Sign In';
+            authLink.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+        }
+    }
+}
+
+/**
+ * Check if user is logged in
+ */
+async function isLoggedIn() {
+    if (!authInitialized) {
+        await initAuth();
+    }
+    return currentUser !== null;
+}
+
+/**
+ * Get current user discount status
+ */
+async function getDiscountStatus() {
+    if (!currentUser) {
+        await initAuth();
+    }
+    
+    if (!currentUser) {
+        return { hasDiscount: false, discountExpiry: null };
+    }
+    
+    try {
+        const status = await window.supabaseAuth.getUserDiscountStatus(currentUser.id);
+        return status;
+    } catch (error) {
+        console.error('Error getting discount status:', error);
+        return { hasDiscount: false, discountExpiry: null };
+    }
+}
+
+// Listen for auth state changes
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', async () => {
+        await initAuth();
+        
+        // Listen for auth state changes (Supabase)
+        if (typeof window.supabaseAuth !== 'undefined' && window.supabaseAuth.getSupabase) {
+            const supabase = window.supabaseAuth.getSupabase();
+            if (supabase && supabase.auth) {
+                supabase.auth.onAuthStateChange((event, session) => {
+                    if (event === 'SIGNED_IN') {
+                        currentUser = session?.user || null;
+                        updateAuthUI(currentUser);
+                    } else if (event === 'SIGNED_OUT') {
+                        currentUser = null;
+                        updateAuthUI(null);
+                    }
+                });
+            }
+        }
+    });
+}
+
 // Force hide any remaining debug elements
 function hideDebugElements() {
     const debugDiv = document.getElementById('mobile-debug');
@@ -1515,8 +1624,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const customerPhone = prompt('Please enter your phone number (optional):', '');
         
-        // Show confirmation dialog
-        const confirmationMessage = `Confirm Booking?\n\nName: ${customerName}\nEmail: ${customerEmail}\n${customerPhone ? `Phone: ${customerPhone}\n` : ''}Tour Date: ${tourDate}\nStart Time: ${startTime}\nGuests: ${numberOfGuests}\nTotal Cost: ${formatUSD(totalCost)}\n\nClick OK to confirm and receive your PDF confirmation.`;
+        // Check if user is authenticated and has discount available
+        let userId = null;
+        let hasDiscount = false;
+        let discountAmount = 0;
+        let finalTotal = totalCost;
+
+        try {
+            // Use the global auth state if available, otherwise check directly
+            if (currentUser) {
+                userId = currentUser.id;
+                const discountStatus = await getDiscountStatus();
+                if (discountStatus.hasDiscount) {
+                    hasDiscount = true;
+                    discountAmount = totalCost * 0.1; // 10% discount
+                    finalTotal = totalCost - discountAmount;
+                }
+            } else if (typeof window.supabaseAuth !== 'undefined') {
+                const { user } = await window.supabaseAuth.getCurrentUser();
+                if (user) {
+                    userId = user.id;
+                    currentUser = user; // Update global state
+                    const discountStatus = await window.supabaseAuth.getUserDiscountStatus(user.id);
+                    if (discountStatus.hasDiscount) {
+                        hasDiscount = true;
+                        discountAmount = totalCost * 0.1; // 10% discount
+                        finalTotal = totalCost - discountAmount;
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('Could not check discount status:', error);
+        }
+        
+        // Build confirmation message with discount info
+        let confirmationMessage = `Confirm Booking?\n\nName: ${customerName}\nEmail: ${customerEmail}\n${customerPhone ? `Phone: ${customerPhone}\n` : ''}Tour Date: ${tourDate}\nStart Time: ${startTime}\nGuests: ${numberOfGuests}\n`;
+        
+        if (hasDiscount) {
+            confirmationMessage += `\n🎉 Welcome Discount Applied: -10% (${formatUSD(discountAmount)})\nOriginal: ${formatUSD(totalCost)}\n`;
+        }
+        
+        confirmationMessage += `Total Cost: ${formatUSD(finalTotal)}\n\nClick OK to confirm and receive your PDF confirmation.`;
         
         if (!confirm(confirmationMessage)) {
             return;
@@ -1541,7 +1689,9 @@ document.addEventListener('DOMContentLoaded', function() {
             date: normalizedDate,
             people: Number(numberOfGuests), // Ensure it's a number
             addons: addons, // Array will be converted to string in API
-            totalPrice: Number(totalCost) // Ensure it's a number, not formatted string
+            totalPrice: Number(finalTotal), // Final total after discount
+            userId: userId, // User ID if authenticated
+            applyDiscount: hasDiscount // Whether to apply discount
         };
 
         // Show loading message

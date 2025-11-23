@@ -165,6 +165,33 @@ async function generateBookingPDF(bookingData) {
             
             yPosition += 20;
             
+            // Discount (if applied)
+            if (bookingData.discountApplied && bookingData.discountAmount > 0) {
+                doc.fontSize(11)
+                   .font('Helvetica')
+                   .fillColor('#2c3e50')
+                   .text('Original Price:', 50, yPosition);
+                
+                doc.fontSize(11)
+                   .font('Helvetica')
+                   .fillColor('#7f8c8d')
+                   .text(`$${bookingData.originalPrice.toFixed(2)} USD`, 200, yPosition);
+                
+                yPosition += 20;
+                
+                doc.fontSize(11)
+                   .font('Helvetica-Bold')
+                   .fillColor('#27ae60')
+                   .text('Welcome Discount (10%):', 50, yPosition);
+                
+                doc.fontSize(11)
+                   .font('Helvetica-Bold')
+                   .fillColor('#27ae60')
+                   .text(`-$${bookingData.discountAmount.toFixed(2)}`, 200, yPosition);
+                
+                yPosition += 25;
+            }
+            
             // Total Price
             doc.fontSize(12)
                .font('Helvetica-Bold')

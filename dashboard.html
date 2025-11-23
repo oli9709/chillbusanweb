@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Chill Busan Tours</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 80px 20px 40px;
+        }
+        .dashboard-header {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .dashboard-header h1 {
+            font-family: 'Lora', serif;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .dashboard-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4A90E2, #65C7D0);
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .dashboard-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-card h2 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .welcome-bonus-card {
+            background: linear-gradient(135deg, #D4AF37, #FFD700);
+            color: white;
+        }
+        .welcome-bonus-card h2 {
+            color: white;
+        }
+        .bonus-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        .bonus-status.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .bonus-status i {
+            font-size: 2rem;
+        }
+        .bookings-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .booking-item {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .booking-item:last-child {
+            border-bottom: none;
+        }
+        .booking-item h3 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        .booking-item p {
+            margin: 4px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>My Dashboard</h1>
+            <div class="dashboard-actions">
+                <a href="index.html" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <button class="btn btn-secondary" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </button>
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+            <!-- Welcome Bonus Card -->
+            <div class="dashboard-card welcome-bonus-card">
+                <h2><i class="fas fa-gift"></i> Welcome Bonus</h2>
+                <div id="bonus-status" class="bonus-status">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <div>
+                        <p style="margin: 0; font-weight: 600;">Loading...</p>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">Checking your discount status</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Bookings Card -->
+            <div class="dashboard-card">
+                <h2><i class="fas fa-calendar-check"></i> My Bookings</h2>
+                <div id="bookings-container">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading bookings...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="src/utils/supabase.js"></script>
+    <script>
+        // Initialize Supabase
+        window.SUPABASE_URL = 'https://bvarcwjloubxagszzkqf.supabase.co';
+        window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2YXJjd2psb3VieGFnc3p6a3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4OTM1MzYsImV4cCI6MjA3OTQ2OTUzNn0.wu05PiXH2UvU0O9ExWqCKMPIRpItFiazDavS-PXSmJo';
+
+        const logoutBtn = document.getElementById('logout-btn');
+        const bonusStatusDiv = document.getElementById('bonus-status');
+        const bookingsContainer = document.getElementById('bookings-container');
+
+        // Check authentication
+        async function checkAuth() {
+            const { user, error } = await window.supabaseAuth.getCurrentUser();
+            
+            if (error || !user) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            
+            return user;
+        }
+
+        // Load welcome bonus status
+        async function loadBonusStatus(userId) {
+            try {
+                const status = await window.supabaseAuth.getUserDiscountStatus(userId);
+                const { hasDiscount, discountExpiry, error } = status;
+                
+                if (error) {
+                    bonusStatusDiv.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <p style="margin: 0; font-weight: 600;">Error loading status</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">${error.message || 'Please try refreshing'}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (hasDiscount && discountExpiry) {
+                    const expiryDate = new Date(discountExpiry);
+                    const now = new Date();
+                    const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+                    
+                    bonusStatusDiv.className = 'bonus-status active';
+                    bonusStatusDiv.innerHTML = `
+                        <i class="fas fa-check-circle"></i>
+                        <div>
+                            <p style="margin: 0; font-weight: 600;">10% Discount Available!</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">
+                                Expires: ${expiryDate.toLocaleDateString()} (${daysLeft} ${daysLeft === 1 ? 'day' : 'days'} left)
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    bonusStatusDiv.className = 'bonus-status';
+                    bonusStatusDiv.innerHTML = `
+                        <i class="fas fa-times-circle"></i>
+                        <div>
+                            <p style="margin: 0; font-weight: 600;">Discount Used or Expired</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">You've already used your welcome bonus</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading bonus status:', error);
+                bonusStatusDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <p style="margin: 0; font-weight: 600;">Error loading status</p>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">${error.message || 'Please try refreshing'}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load user bookings
+        async function loadBookings(userId) {
+            try {
+                // Fetch bookings from Neon database via Netlify function
+                const response = await fetch(`/.netlify/functions/getUserBookings?userId=${userId}`);
+                const result = await response.json();
+
+                if (result.success && result.bookings && result.bookings.length > 0) {
+                    const bookingsList = document.createElement('ul');
+                    bookingsList.className = 'bookings-list';
+                    
+                    result.bookings.forEach(booking => {
+                        const bookingItem = document.createElement('li');
+                        bookingItem.className = 'booking-item';
+                        bookingItem.innerHTML = `
+                            <h3>${booking.tour || 'Custom Tour'}</h3>
+                            <p><i class="fas fa-calendar"></i> ${booking.date}</p>
+                            <p><i class="fas fa-users"></i> ${booking.people} ${booking.people === 1 ? 'guest' : 'guests'}</p>
+                            <p><i class="fas fa-dollar-sign"></i> $${booking.total_price || 0}</p>
+                        `;
+                        bookingsList.appendChild(bookingItem);
+                    });
+                    
+                    bookingsContainer.innerHTML = '';
+                    bookingsContainer.appendChild(bookingsList);
+                } else {
+                    bookingsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No bookings yet</p>
+                            <a href="index.html" class="btn btn-primary" style="display: inline-block; margin-top: 15px;">
+                                Book Your First Tour
+                            </a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                bookingsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading bookings</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+            await window.supabaseAuth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        // Initialize dashboard
+        (async () => {
+            const user = await checkAuth();
+            if (user) {
+                await loadBonusStatus(user.id);
+                await loadBookings(user.id);
+            }
+        })();
+    </script>
+</body>
+</html>
+

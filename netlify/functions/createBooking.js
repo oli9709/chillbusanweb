@@ -1,14 +1,12 @@
 /**
  * Netlify Function: Create Booking
  * Handles booking creation, database storage, PDF generation, and email notifications
+ * Uses Supabase client instead of Neon
  */
 
-const { neon } = require('@netlify/neon');
+const { createClient } = require('@supabase/supabase-js');
 const { generateBookingPDF } = require('../../utils/generateBookingPDF');
 const nodemailer = require('nodemailer');
-
-// Initialize Neon connection
-const sql = neon();
 
 // Helper to clean base64 string
 function cleanBase64(str) {
@@ -60,6 +58,27 @@ module.exports.handler = async (event) => {
     }
 
     try {
+        // Initialize Supabase client with service role key
+        const supabaseUrl = process.env.SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        if (!supabaseUrl || !supabaseServiceKey) {
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({
+                    success: false,
+                    message: 'Server configuration error: Supabase credentials missing'
+                })
+            };
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+        // Get authenticated user from Netlify context
+        const { user } = event.clientContext || {};
+        const userId = user?.sub; // Supabase user ID from JWT
+
         // 1. Parse POST request body
         const bookingData = JSON.parse(event.body);
         const {
@@ -71,7 +90,8 @@ module.exports.handler = async (event) => {
             people,
             addons,
             totalPrice,
-            pdfData  // Optional: base64 PDF from client
+            pdfData,  // Optional: base64 PDF from client
+            applyDiscount = false  // Whether to apply welcome discount
         } = bookingData;
 
         // 2. Validate all required fields
@@ -129,7 +149,7 @@ module.exports.handler = async (event) => {
             };
         }
 
-        // 3. Convert all fields to correct PostgreSQL types
+        // 3. Convert all fields to correct types
         // Clean date: ensure it becomes a proper ISO date string YYYY-MM-DD
         let cleanDate;
         try {
@@ -170,7 +190,7 @@ module.exports.handler = async (event) => {
         }
 
         // Clean totalPrice: convert to integer
-        const cleanTotal = parseInt(totalPrice, 10);
+        let cleanTotal = parseInt(totalPrice, 10);
         if (isNaN(cleanTotal)) {
             return {
                 statusCode: 400,
@@ -180,6 +200,27 @@ module.exports.handler = async (event) => {
                     message: 'Invalid total price'
                 })
             };
+        }
+
+        // Apply welcome discount if requested and user is authenticated
+        let discountApplied = false;
+        let originalTotal = cleanTotal;
+        let discountAmount = 0;
+        
+        if (applyDiscount && userId) {
+            try {
+                // Frontend already calculated discount, so totalPrice is the discounted amount
+                // Reverse-calculate the original price: original = discounted / 0.9
+                originalTotal = Math.round(cleanTotal / 0.9);
+                discountAmount = originalTotal - cleanTotal;
+                discountApplied = true;
+                console.log(`Welcome discount applied: Original $${originalTotal}, Discount $${discountAmount}, Final $${cleanTotal}`);
+            } catch (error) {
+                console.error('Error processing discount:', error);
+                discountApplied = false;
+                originalTotal = cleanTotal;
+                discountAmount = 0;
+            }
         }
 
         // Clean addons: convert array to comma-separated string ("" if empty)
@@ -197,6 +238,7 @@ module.exports.handler = async (event) => {
         const bookingId = `CBT-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 
         console.log('Cleaned booking data:', {
+            user_id: userId,
             name: cleanName,
             email: cleanEmail,
             phone: cleanPhone,
@@ -206,33 +248,59 @@ module.exports.handler = async (event) => {
             addons: cleanAddons,
             total_price: cleanTotal
         });
-        console.log('Inserting booking into database...');
+        console.log('Inserting booking into Supabase...');
         
-        // Save booking to Neon database using cleaned values
-        const insertResult = await sql`
-            INSERT INTO bookings (
-                name,
-                email,
-                phone,
-                tour,
-                date,
-                people,
-                addons,
-                total_price
-            ) VALUES (
-                ${cleanName},
-                ${cleanEmail},
-                ${cleanPhone},
-                ${cleanTour},
-                ${cleanDate},
-                ${cleanPeople},
-                ${cleanAddons},
-                ${cleanTotal}
-            ) RETURNING id
-        `;
+        // Save booking to Supabase using cleaned values
+        const { data: bookingRecord, error: insertError } = await supabase
+            .from('bookings')
+            .insert({
+                user_id: userId || null, // Link to authenticated user if available
+                name: cleanName,
+                email: cleanEmail,
+                phone: cleanPhone,
+                tour: cleanTour,
+                date: cleanDate,
+                people: cleanPeople,
+                addons: cleanAddons,
+                total_price: cleanTotal
+            })
+            .select()
+            .single();
 
-        const bookingDbId = insertResult[0].id;
-        console.log('Booking saved to database with ID:', bookingDbId);
+        if (insertError) {
+            console.error('Error inserting booking:', insertError);
+            return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({
+                    success: false,
+                    message: 'Failed to save booking to database',
+                    error: insertError.message
+                })
+            };
+        }
+
+        const bookingDbId = bookingRecord.id;
+        console.log('Booking saved to Supabase with ID:', bookingDbId);
+
+        // Consume discount if it was applied
+        if (discountApplied && userId) {
+            try {
+                const { error: discountError } = await supabase
+                    .from('users')
+                    .update({ first_booking_discount: false })
+                    .eq('id', userId);
+                
+                if (discountError) {
+                    console.warn('Failed to consume discount:', discountError);
+                } else {
+                    console.log(`Discount consumed for user: ${userId}`);
+                }
+            } catch (error) {
+                console.error('Error consuming discount:', error);
+                // Don't fail the booking if discount consumption fails
+            }
+        }
 
         // 4. Handle PDF - use provided base64 or generate on server
         let pdfBase64;
@@ -266,23 +334,24 @@ module.exports.handler = async (event) => {
                 numberOfGuests: cleanPeople,
                 addons: Array.isArray(addons) ? addons : (addons ? [addons] : []),
                 totalPrice: cleanTotal,
+                originalPrice: discountApplied ? originalTotal : cleanTotal,
+                discountApplied: discountApplied,
+                discountAmount: discountApplied ? (originalTotal - cleanTotal) : 0,
                 meetingLocation: 'Haeundae Beach' // Default meeting location
             };
 
             const result = await generateBookingPDF(pdfGenerationData);
             
-            // Verify PDF buffer creation - ensure it's a proper Node Buffer
+            // Verify PDF buffer creation
             let pdfBuffer;
             if (Buffer.isBuffer(result.buffer)) {
                 pdfBuffer = result.buffer;
             } else if (result.buffer && typeof result.buffer === 'object') {
-                // Convert to Buffer if it's not already
                 pdfBuffer = Buffer.from(result.buffer);
             } else {
                 pdfBuffer = Buffer.from(result.buffer);
             }
             
-            // Log the raw PDF buffer BEFORE converting to base64
             console.log('PDF buffer length:', pdfBuffer.length);
             pdfBufferLength = pdfBuffer.length;
             
@@ -335,6 +404,7 @@ module.exports.handler = async (event) => {
                     <p><strong>Date:</strong> ${date}</p>
                     <p><strong>Number of Guests:</strong> ${cleanPeople}</p>
                     ${cleanAddons ? `<p><strong>Add-ons:</strong> ${cleanAddons}</p>` : ''}
+                    ${discountApplied ? `<p style="color: #27ae60;"><strong>Welcome Discount Applied:</strong> -10% ($${(originalTotal - cleanTotal).toFixed(2)})</p>` : ''}
                     <p><strong>Total Price:</strong> $${cleanTotal.toFixed(2)} USD</p>
                 </div>
                 <p>Please find your booking confirmation PDF attached to this email.</p>
@@ -355,7 +425,7 @@ Booking ID: ${bookingId}
 Tour: ${tour}
 Date: ${date}
 Number of Guests: ${cleanPeople}
-${cleanAddons ? `Add-ons: ${cleanAddons}\n` : ''}Total Price: $${cleanTotal.toFixed(2)} USD
+${cleanAddons ? `Add-ons: ${cleanAddons}\n` : ''}${discountApplied ? `Welcome Discount Applied: -10% ($${(originalTotal - cleanTotal).toFixed(2)})\n` : ''}Total Price: $${cleanTotal.toFixed(2)} USD
 
 Please find your booking confirmation PDF attached to this email.
 
@@ -377,7 +447,7 @@ Chill Busan Tours
             html: emailHtml,
             attachments: [
                 {
-                    content: pdfBase64,  // base64 string only
+                    content: pdfBase64,
                     filename: 'booking-summary.pdf',
                     type: 'application/pdf',
                     disposition: 'attachment'
@@ -410,7 +480,7 @@ Chill Busan Tours
             `,
             attachments: [
                 {
-                    content: pdfBase64,  // base64 string only
+                    content: pdfBase64,
                     filename: 'booking-summary.pdf',
                     type: 'application/pdf',
                     disposition: 'attachment'
@@ -419,7 +489,7 @@ Chill Busan Tours
         });
         console.log('Admin email sent successfully');
 
-        // 6. Return success response (temporarily includes pdfLength for testing)
+        // 6. Return success response
         return {
             statusCode: 200,
             headers,
@@ -444,4 +514,3 @@ Chill Busan Tours
         };
     }
 };
-

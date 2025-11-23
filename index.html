@@ -114,6 +114,16 @@
             <li><a href="#events">Events</a></li>
             <li><a href="#contact">Contact</a></li>
             <li><a href="stories.html">Stories Page</a></li>
+            <li id="auth-nav-item" style="display: none;">
+                <a href="login.html" id="auth-link">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </a>
+            </li>
+            <li id="signup-nav-item" style="display: none;">
+                <a href="signup.html" id="signup-link" style="background: linear-gradient(135deg, #4A90E2, #65C7D0); color: white; padding: 8px 16px; border-radius: 20px;">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </a>
+            </li>
         </ul>
     </nav>
 
@@ -932,7 +942,84 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script>
+        // Initialize Supabase environment variables
+        // These should be set via Netlify environment variables or config file
+        // For production, these will be injected by Netlify
+        window.SUPABASE_URL = window.SUPABASE_URL || 'https://bvarcwjloubxagszzkqf.supabase.co';
+        window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2YXJjd2psb3VieGFnc3p6a3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4OTM1MzYsImV4cCI6MjA3OTQ2OTUzNn0.wu05PiXH2UvU0O9ExWqCKMPIRpItFiazDavS-PXSmJo';
+        
+        // Redirect rules for authentication
+        (function() {
+            // Check if we're on a protected page
+            const protectedPages = ['dashboard.html'];
+            const currentPage = window.location.pathname.split('/').pop();
+            
+            if (protectedPages.includes(currentPage)) {
+                // This will be handled by dashboard.html's auth check
+                // But we can pre-check here
+                setTimeout(async () => {
+                    if (typeof window.supabaseAuth !== 'undefined') {
+                        const { user } = await window.supabaseAuth.getCurrentUser();
+                        if (!user && currentPage === 'dashboard.html') {
+                            // Redirect to login if not authenticated
+                            window.location.href = 'login.html?redirect=dashboard.html';
+                        }
+                    }
+                }, 100);
+            }
+        })();
+    </script>
+    <script src="src/utils/supabase.js"></script>
     <script src="utils/bookingAPI.js"></script>
     <script src="main.js"></script>
+    <script>
+        // Update navigation based on auth status after scripts load
+        (async () => {
+            try {
+                // Wait for supabase to initialize
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                if (typeof window.supabaseAuth !== 'undefined') {
+                    const { user } = await window.supabaseAuth.getCurrentUser();
+                    const authLink = document.getElementById('auth-link');
+                    const authNavItem = document.getElementById('auth-nav-item');
+                    const signupLink = document.getElementById('signup-link');
+                    const signupNavItem = document.getElementById('signup-nav-item');
+                    
+                    // Show auth buttons
+                    if (authNavItem) authNavItem.style.display = 'block';
+                    if (signupNavItem) signupNavItem.style.display = 'block';
+                    
+                    if (user) {
+                        // User is logged in
+                        if (authLink) {
+                            authLink.href = 'dashboard.html';
+                            authLink.innerHTML = '<i class="fas fa-user-circle"></i> Dashboard';
+                        }
+                        if (signupNavItem) signupNavItem.style.display = 'none';
+                    } else {
+                        // User is not logged in
+                        if (authLink) {
+                            authLink.href = 'login.html';
+                            authLink.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                        }
+                        if (signupLink) {
+                            signupLink.href = 'signup.html';
+                            signupLink.innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('Auth check failed:', error);
+                // Show sign in/sign up buttons even if check fails
+                const authNavItem = document.getElementById('auth-nav-item');
+                const signupNavItem = document.getElementById('signup-nav-item');
+                if (authNavItem) authNavItem.style.display = 'block';
+                if (signupNavItem) signupNavItem.style.display = 'block';
+            }
+        })();
+    </script>
 </body>
 </html> 
