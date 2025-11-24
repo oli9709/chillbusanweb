@@ -3,6 +3,51 @@
 // Cache bust: Comment system added
 
 // ============================================
+// POSTHOG ANALYTICS INTEGRATION
+// ============================================
+
+/**
+ * Track PostHog event with console logging
+ * Made global for inline onclick handlers
+ */
+function trackEvent(eventName, properties = {}) {
+    if (typeof posthog !== 'undefined' && posthog) {
+        posthog.capture(eventName, properties);
+        console.log('PostHog event:', eventName, properties);
+    } else {
+        console.warn('PostHog not initialized:', eventName, properties);
+    }
+}
+
+// Make trackEvent globally accessible
+window.trackEvent = trackEvent;
+
+/**
+ * Track page view
+ */
+function trackPageView() {
+    if (typeof posthog !== 'undefined' && posthog) {
+        posthog.capture('$pageview');
+        console.log('PostHog event: $pageview');
+    }
+}
+
+// Track initial page view
+document.addEventListener('DOMContentLoaded', function() {
+    trackPageView();
+});
+
+// Track page views on navigation (for SPA-like behavior)
+let lastUrl = location.href;
+new MutationObserver(() => {
+    const url = location.href;
+    if (url !== lastUrl) {
+        lastUrl = url;
+        trackPageView();
+    }
+}).observe(document, { subtree: true, childList: true });
+
+// ============================================
 // AUTHENTICATION & SESSION HANDLING
 // ============================================
 
@@ -750,6 +795,8 @@ if (contactForm) {
     }
 
     contactForm.addEventListener('submit', async function(e) {
+        // Track contact form submission
+        trackEvent('booking_submitted', { form_type: 'contact_inquiry' });
         e.preventDefault();
 
         // Reset messages
@@ -1261,12 +1308,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Generate summary button
     if (generateSummaryBtn) {
-        generateSummaryBtn.addEventListener('click', generateDetailedSummary);
+        generateSummaryBtn.addEventListener('click', function() {
+            trackEvent('custom_tour_clicked', {action: 'generate_summary'});
+            generateDetailedSummary();
+        });
     }
 
     // Contact custom tour button
     if (contactCustomBtn) {
-        contactCustomBtn.addEventListener('click', contactAboutCustomTour);
+        contactCustomBtn.addEventListener('click', function() {
+            trackEvent('custom_tour_clicked', {action: 'contact_about_tour'});
+            contactAboutCustomTour();
+        });
     }
 
     function updateTourSummary() {
@@ -1704,6 +1757,14 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             if (typeof createBooking !== 'undefined') {
                 const result = await createBooking(bookingData);
+                
+                // Track successful booking submission
+                trackEvent('booking_submitted', {
+                    tour_type: 'Custom Tour',
+                    booking_id: result.bookingId || 'pending',
+                    total_price: finalTotal,
+                    guests: numberOfGuests
+                });
                 
                 // Remove loading message
                 if (loadingMsg.parentNode) {
