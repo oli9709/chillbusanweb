@@ -207,7 +207,7 @@ class CommentsManager {
 
         try {
             // Posting comment
-            const response = await fetch('/.netlify/functions/comments', {
+            const response = await fetch('/api/comments', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -243,7 +243,7 @@ class CommentsManager {
     async loadComments() {
         try {
             // Loading comments
-            const response = await fetch('/.netlify/functions/comments');
+            const response = await fetch('/api/comments');
             // Comments response received
             
             if (!response.ok) {
@@ -573,7 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = true;
             
             // Send to Netlify function
-            const response = await fetch('/.netlify/functions/stories', {
+            const response = await fetch('/api/stories', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

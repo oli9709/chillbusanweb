@@ -258,7 +258,7 @@
         async function loadBookings(userId) {
             try {
                 // Fetch bookings from Neon database via Netlify function
-                const response = await fetch(`/.netlify/functions/getUserBookings?userId=${userId}`);
+                const response = await fetch(`/api/getUserBookings?userId=${userId}`);
                 const result = await response.json();
 
                 if (result.success && result.bookings && result.bookings.length > 0) {

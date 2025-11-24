@@ -3,7 +3,7 @@
  * Generates a professional PDF confirmation document for bookings
  */
 
-const PDFDocument = require('pdfkit');
+import PDFDocument from 'pdfkit';
 
 /**
  * Generate a booking confirmation PDF
@@ -322,5 +322,6 @@ function formatDate(dateString) {
     }
 }
 
-module.exports = { generateBookingPDF };
+export { generateBookingPDF };
+export default { generateBookingPDF };
 

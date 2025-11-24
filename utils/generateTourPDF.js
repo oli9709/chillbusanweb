@@ -3,9 +3,9 @@
  * Generates a professional PDF confirmation document
  */
 
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const path = require('path');
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Generate a booking confirmation PDF
@@ -317,5 +317,6 @@ function formatDate(dateString) {
     }
 }
 
-module.exports = { generateTourPDF };
+export { generateTourPDF };
+export default { generateTourPDF };
 

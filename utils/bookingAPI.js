@@ -18,7 +18,7 @@
  */
 async function createBooking(bookingData) {
     try {
-        const response = await fetch('/.netlify/functions/createBooking', {
+        const response = await fetch('/api/createBooking', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ async function sendBookingConfirmation(bookingDetails) {
             bookingId: bookingDetails.bookingId || generateBookingId()
         };
 
-        const response = await fetch('/.netlify/functions/bookingConfirmation', {
+        const response = await fetch('/api/bookingConfirmation', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

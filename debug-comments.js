@@ -17,7 +17,7 @@ console.log('Elements found:', elements);
 
 // Test 3: Test function endpoint
 async function testEndpoint() {
-    const endpoint = '/.netlify/functions/comments';
+    const endpoint = '/api/comments';
     console.log('Testing endpoint:', endpoint);
     
     try {

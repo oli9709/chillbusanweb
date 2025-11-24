@@ -89,7 +89,7 @@
             resultDiv.textContent = 'Testing connection...';
 
             try {
-                const response = await fetch('/.netlify/functions/comments');
+                const response = await fetch('/api/comments');
                 const result = await response.json();
                 
                 resultDiv.className = 'result success';
@@ -117,7 +117,7 @@
             resultDiv.textContent = 'Posting comment...';
 
             try {
-                const response = await fetch('/.netlify/functions/comments', {
+                const response = await fetch('/api/comments', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -147,7 +147,7 @@
             resultDiv.textContent = 'Loading comments...';
 
             try {
-                const response = await fetch('/.netlify/functions/comments');
+                const response = await fetch('/api/comments');
                 const result = await response.json();
                 
                 if (result.success) {
