@@ -209,7 +209,7 @@ export default async function handler(req, res) {
         console.log('Inserting booking into Supabase...');
         
         // Save booking to Supabase using cleaned values
-        const { data: bookingRecord, error: insertError } = await supabase
+        const { data: insertedBookingData, error: insertError } = await supabase
             .from('bookings')
             .insert({
                 user_id: userId || null, // Link to authenticated user if available
@@ -222,8 +222,7 @@ export default async function handler(req, res) {
                 addons: cleanAddons,
                 total_price: cleanTotal
             })
-            .select()
-            .single();
+            .select();
 
         if (insertError) {
             console.error('Error inserting booking:', insertError);
@@ -231,6 +230,18 @@ export default async function handler(req, res) {
                 success: false,
                 message: 'Failed to save booking to database',
                 error: insertError.message
+            });
+        }
+
+        // Get first item from array (INSERT should return one row)
+        const bookingRecord = insertedBookingData?.[0] ?? null;
+        
+        if (!bookingRecord) {
+            console.error('No booking record returned from insert');
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to save booking to database',
+                error: 'No booking record returned'
             });
         }
 

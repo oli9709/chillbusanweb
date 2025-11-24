@@ -200,7 +200,7 @@
                             <li>🏞️ Secret Scenic Spots & Markets - Guide's special picks!</li>
                         </ol>
                     </div>
-                    <button class="details-button" onclick="trackEvent('book_now_clicked', {tour_name: 'Busan Hidden Gems, Beaches & Local Food'}); window.open('https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-hidden-gems-beaches-and-local-food-private-tour-t942375/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
+                    <button class="details-button" data-tour-name="Busan Hidden Gems, Beaches & Local Food" onclick="window.open('https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-hidden-gems-beaches-and-local-food-private-tour-t942375/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
                 </div>
             </div>
 
@@ -228,7 +228,7 @@
                             <li>🎬 Recreate your favorite K-Drama scenes!</li>
                         </ol>
                     </div>
-                    <button class="details-button" onclick="trackEvent('book_now_clicked', {tour_name: 'K-Drama Day Tour with Pet Café & Picnic'}); window.open('https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-guided-k-drama-day-tour-with-pet-cafe-picnic-t996462/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
+                    <button class="details-button" data-tour-name="K-Drama Day Tour with Pet Café & Picnic" onclick="window.open('https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-guided-k-drama-day-tour-with-pet-cafe-picnic-t996462/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
                 </div>
             </div>
 
@@ -256,7 +256,7 @@
                             <li>👥 Meet new people and make memories!</li>
                         </ol>
                     </div>
-                    <button class="details-button" onclick="trackEvent('book_now_clicked', {tour_name: 'Busan Nightclub Crawl – Dance, Drink & Party All Night'}); window.open('https://www.getyourguide.com/busan-l32281/busan-nightclub-crawl-dance-drink-party-all-night-t1087363/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
+                    <button class="details-button" data-tour-name="Busan Nightclub Crawl – Dance, Drink & Party All Night" onclick="window.open('https://www.getyourguide.com/busan-l32281/busan-nightclub-crawl-dance-drink-party-all-night-t1087363/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
                 </div>
             </div>
 
@@ -284,7 +284,7 @@
                             <li>📸 Capture Instagram-worthy moments</li>
                         </ol>
                     </div>
-                    <button class="details-button" onclick="trackEvent('book_now_clicked', {tour_name: 'Busan Luxury Ocean Journey – Blue Line Capsule & Yacht'}); window.open('https://www.getyourguide.com/busan-l32281/busan-luxury-ocean-journey-blue-line-capsule-yacht-t1087094/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
+                    <button class="details-button" data-tour-name="Busan Luxury Ocean Journey – Blue Line Capsule & Yacht" onclick="window.open('https://www.getyourguide.com/busan-l32281/busan-luxury-ocean-journey-blue-line-capsule-yacht-t1087094/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
                 </div>
             </div>
         </div>
@@ -631,7 +631,9 @@
                     width="160px" 
                     height="auto" 
                     style="border: 1px solid #c6c8d0; border-radius: 6px;"
-                    alt="GetYourGuide | Chill Busan Tours" 
+                    alt="GetYourGuide | Chill Busan Tours"
+                    loading="lazy"
+                    decoding="async"
                 />
             </a>
             <p style="font-size: 14px; margin-top: 8px; color: #555;">
@@ -955,13 +957,8 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script>
-        // Initialize Supabase environment variables
-        // These should be set via Netlify environment variables or config file
-        // For production, these will be injected by Netlify
-        window.SUPABASE_URL = window.SUPABASE_URL || 'https://bvarcwjloubxagszzkqf.supabase.co';
-        window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2YXJjd2psb3VieGFnc3p6a3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4OTM1MzYsImV4cCI6MjA3OTQ2OTUzNn0.wu05PiXH2UvU0O9ExWqCKMPIRpItFiazDavS-PXSmJo';
         
         // Redirect rules for authentication
         (function() {

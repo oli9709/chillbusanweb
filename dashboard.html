@@ -177,41 +177,102 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="src/utils/supabase.js"></script>
     <script>
-        // Initialize Supabase
-        window.SUPABASE_URL = 'https://bvarcwjloubxagszzkqf.supabase.co';
-        window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2YXJjd2psb3VieGFnc3p6a3FmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4OTM1MzYsImV4cCI6MjA3OTQ2OTUzNn0.wu05PiXH2UvU0O9ExWqCKMPIRpItFiazDavS-PXSmJo';
 
         const logoutBtn = document.getElementById('logout-btn');
+        
+        // Listen for auth state changes and handle session expiration
+        if (window.supabaseAuth && window.supabaseAuth.getSupabase) {
+            const supabase = window.supabaseAuth.getSupabase();
+            if (supabase && supabase.auth) {
+                supabase.auth.onAuthStateChange((event, session) => {
+                    if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+                        if (!session || !session.user) {
+                            window.location.href = 'login.html?expired=true';
+                        }
+                    }
+                });
+            }
+        }
         const bonusStatusDiv = document.getElementById('bonus-status');
         const bookingsContainer = document.getElementById('bookings-container');
 
-        // Check authentication
+        // Check authentication with session expiration handling
         async function checkAuth() {
-            const { user, error } = await window.supabaseAuth.getCurrentUser();
-            
-            if (error || !user) {
-                window.location.href = 'login.html';
-                return null;
-            }
-            
-            return user;
-        }
-
-        // Load welcome bonus status
-        async function loadBonusStatus(userId) {
             try {
-                const status = await window.supabaseAuth.getUserDiscountStatus(userId);
-                const { hasDiscount, discountExpiry, error } = status;
+                const { user, error } = await window.supabaseAuth.getCurrentUser();
                 
                 if (error) {
+                    // Check if it's a session expiration error
+                    if (error.message && (error.message.includes('JWT') || error.message.includes('expired') || error.message.includes('invalid'))) {
+                        window.location.href = 'login.html?expired=true';
+                        return null;
+                    }
+                }
+                
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return null;
+                }
+                
+                // Verify session is still valid
+                const supabase = window.supabaseAuth.getSupabase();
+                if (supabase) {
+                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                    if (sessionError || !session || !session.user) {
+                        window.location.href = 'login.html?expired=true';
+                        return null;
+                    }
+                }
+                
+                return user;
+            } catch (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'login.html?expired=true';
+                return null;
+            }
+        }
+
+        // Load welcome bonus status with timeout protection
+        async function loadBonusStatus(userId) {
+            // Set timeout to prevent infinite loading
+            const timeout = setTimeout(() => {
+                if (bonusStatusDiv.querySelector('.fa-spinner')) {
                     bonusStatusDiv.innerHTML = `
                         <i class="fas fa-exclamation-triangle"></i>
                         <div>
-                            <p style="margin: 0; font-weight: 600;">Error loading status</p>
-                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">${error.message || 'Please try refreshing'}</p>
+                            <p style="margin: 0; font-weight: 600;">Unable to load status</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">Please refresh the page</p>
+                        </div>
+                    `;
+                }
+            }, 10000);
+            
+            try {
+                const status = await window.supabaseAuth.getUserDiscountStatus(userId);
+                clearTimeout(timeout);
+                
+                const { hasDiscount, discountExpiry, error } = status;
+                
+                if (error) {
+                    let errorMsg = 'Please try refreshing';
+                    if (error.message && !error.message.includes('undefined')) {
+                        // Escape error message to prevent XSS
+                        const div = document.createElement('div');
+                        div.textContent = error.message;
+                        errorMsg = div.innerHTML;
+                    } else if (error.code === 'PGRST116') {
+                        errorMsg = 'Your account is being set up. Please refresh in a moment.';
+                    }
+                    
+                    bonusStatusDiv.innerHTML = `
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <p style="margin: 0; font-weight: 600;">Unable to load discount status</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">${errorMsg}</p>
                         </div>
                     `;
                     return;
@@ -243,35 +304,58 @@
                     `;
                 }
             } catch (error) {
+                clearTimeout(timeout);
                 console.error('Error loading bonus status:', error);
+                
+                let errorMsg = 'Please try refreshing';
+                if (error.message && error.message.includes('network')) {
+                    errorMsg = 'Network issue. Check your connection and try again.';
+                } else if (error.message) {
+                    // Escape error message
+                    const div = document.createElement('div');
+                    div.textContent = error.message;
+                    errorMsg = div.innerHTML;
+                }
+                
                 bonusStatusDiv.innerHTML = `
                     <i class="fas fa-exclamation-triangle"></i>
                     <div>
-                        <p style="margin: 0; font-weight: 600;">Error loading status</p>
-                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">${error.message || 'Please try refreshing'}</p>
+                        <p style="margin: 0; font-weight: 600;">Unable to load discount status</p>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">${errorMsg}</p>
                     </div>
                 `;
             }
         }
 
-        // Load user bookings
+        // Load user bookings with improved error handling
         async function loadBookings(userId) {
             try {
-                // Fetch bookings from Neon database via Netlify function
                 const response = await fetch(`/api/getUserBookings?userId=${userId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                
                 const result = await response.json();
 
                 if (result.success && result.bookings && result.bookings.length > 0) {
                     const bookingsList = document.createElement('ul');
                     bookingsList.className = 'bookings-list';
                     
+                    // Helper function to escape HTML (XSS prevention)
+                    function escapeHtml(text) {
+                        const div = document.createElement('div');
+                        div.textContent = text;
+                        return div.innerHTML;
+                    }
+                    
                     result.bookings.forEach(booking => {
                         const bookingItem = document.createElement('li');
                         bookingItem.className = 'booking-item';
                         bookingItem.innerHTML = `
-                            <h3>${booking.tour || 'Custom Tour'}</h3>
-                            <p><i class="fas fa-calendar"></i> ${booking.date}</p>
-                            <p><i class="fas fa-users"></i> ${booking.people} ${booking.people === 1 ? 'guest' : 'guests'}</p>
+                            <h3>${escapeHtml(booking.tour || 'Custom Tour')}</h3>
+                            <p><i class="fas fa-calendar"></i> ${escapeHtml(booking.date || '')}</p>
+                            <p><i class="fas fa-users"></i> ${booking.people || 0} ${(booking.people || 0) === 1 ? 'guest' : 'guests'}</p>
                             <p><i class="fas fa-dollar-sign"></i> $${booking.total_price || 0}</p>
                         `;
                         bookingsList.appendChild(bookingItem);
@@ -283,7 +367,7 @@
                     bookingsContainer.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-calendar-times"></i>
-                            <p>No bookings yet</p>
+                            <p>You haven't booked any tours yet</p>
                             <a href="index.html" class="btn btn-primary" style="display: inline-block; margin-top: 15px;">
                                 Book Your First Tour
                             </a>
@@ -292,10 +376,30 @@
                 }
             } catch (error) {
                 console.error('Error loading bookings:', error);
+                
+                let errorMessage = 'We couldn\'t load your bookings right now.';
+                let showRetry = true;
+                
+                if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+                    errorMessage = 'Looks like you\'re offline. Please check your internet connection and try again.';
+                } else if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
+                    errorMessage = 'Your session has expired. We\'ll redirect you to sign in...';
+                    showRetry = false;
+                    setTimeout(() => window.location.href = 'login.html?expired=true', 2000);
+                } else if (error.message && error.message.includes('500')) {
+                    errorMessage = 'Our servers are having a moment. Please try again in a few seconds.';
+                }
+                
+                const retryButton = showRetry ? 
+                    `<button onclick="loadBookings('${userId}')" class="btn btn-primary" style="display: inline-block; margin-top: 15px;">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>` : '';
+                
                 bookingsContainer.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Error loading bookings</p>
+                        <i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i>
+                        <p style="margin: 15px 0;">${errorMessage}</p>
+                        ${retryButton}
                     </div>
                 `;
             }

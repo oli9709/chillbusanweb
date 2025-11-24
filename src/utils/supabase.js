@@ -78,6 +78,11 @@ async function signUp(email, password, fullName) {
     }
 
     try {
+        // Track signup attempt
+        if (typeof window !== 'undefined' && window.trackEvent) {
+            window.trackEvent('user_signup_attempted', { email: email.substring(0, 5) + '***' });
+        }
+
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -90,11 +95,19 @@ async function signUp(email, password, fullName) {
 
         if (error) throw error;
 
+        // Track successful signup
+        if (typeof window !== 'undefined' && window.trackEvent) {
+            window.trackEvent('user_signed_up', { 
+                user_id: data.user?.id?.substring(0, 8) || 'unknown',
+                has_discount: true 
+            });
+        }
+
         // Create user record in users table with welcome discount
         if (data.user) {
             const discountExpiry = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(); // 60 days from now
             
-            const { error: dbError } = await supabase
+            const { data: insertData, error: dbError } = await supabase
                 .from('users')
                 .insert({
                     id: data.user.id,
@@ -103,19 +116,20 @@ async function signUp(email, password, fullName) {
                     first_booking_discount: true,
                     discount_expiry: discountExpiry
                 })
-                .select()
-                .single();
+                .select();
 
             if (dbError) {
                 // If duplicate key error, user already exists - update discount if needed
                 if (dbError.code === '23505') {
                     console.log('User already exists in database, checking discount status...');
                     // Check if user needs discount reset
-                    const { data: existingUser } = await supabase
+                    const { data: existingUserData } = await supabase
                         .from('users')
                         .select('first_booking_discount, discount_expiry')
                         .eq('id', data.user.id)
-                        .single();
+                        .limit(1);
+                    
+                    const existingUser = existingUserData?.[0] ?? null;
                     
                     // If discount expired or used, don't update
                     if (existingUser && !existingUser.first_booking_discount) {
@@ -149,12 +163,25 @@ async function signIn(email, password) {
     }
 
     try {
+        // Track login attempt
+        if (typeof window !== 'undefined' && window.trackEvent) {
+            window.trackEvent('user_login_attempted', { email: email.substring(0, 5) + '***' });
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
         });
 
         if (error) throw error;
+        
+        // Track successful login
+        if (typeof window !== 'undefined' && window.trackEvent) {
+            window.trackEvent('user_logged_in', { 
+                user_id: data.user?.id?.substring(0, 8) || 'unknown'
+            });
+        }
+        
         return { data, error: null };
     } catch (error) {
         console.error('Signin error:', error);
@@ -237,46 +264,56 @@ async function getUserDiscountStatus(userId) {
     }
 
     try {
-        const { data, error } = await supabase
+        const { data: userData, error } = await supabase
             .from('users')
             .select('first_booking_discount, discount_expiry')
             .eq('id', userId)
-            .single();
+            .limit(1);
 
         if (error) {
-            // If user doesn't exist in users table, create it
-            if (error.code === 'PGRST116') {
-                // User exists in auth but not in users table - create record
-                const { data: authData } = await supabase.auth.getUser();
-                if (authData?.user) {
-                    const { error: insertError } = await supabase
-                        .from('users')
-                        .insert({
-                            id: authData.user.id,
-                            email: authData.user.email,
-                            full_name: authData.user.user_metadata?.full_name || '',
-                            first_booking_discount: true,
-                            discount_expiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
-                        });
-                    
-                    if (!insertError) {
-                        return {
-                            hasDiscount: true,
-                            discountExpiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-                            error: null
-                        };
-                    }
-                }
-            }
             throw error;
         }
 
-        const hasDiscount = data.first_booking_discount && 
-                           new Date(data.discount_expiry) > new Date();
+        // If user doesn't exist in users table, create it
+        const user = userData?.[0] ?? null;
+        
+        if (!user) {
+            // User exists in auth but not in users table - create record
+            const { data: authData } = await supabase.auth.getUser();
+            if (authData?.user) {
+                const { error: insertError } = await supabase
+                    .from('users')
+                    .insert({
+                        id: authData.user.id,
+                        email: authData.user.email,
+                        full_name: authData.user.user_metadata?.full_name || '',
+                        first_booking_discount: true,
+                        discount_expiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString()
+                    });
+                
+                if (!insertError) {
+                    return {
+                        hasDiscount: true,
+                        discountExpiry: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+                        error: null
+                    };
+                }
+            }
+            
+            // If we couldn't create the user record, return no discount
+            return {
+                hasDiscount: false,
+                discountExpiry: null,
+                error: null
+            };
+        }
+
+        const hasDiscount = user.first_booking_discount && 
+                           new Date(user.discount_expiry) > new Date();
 
         return {
             hasDiscount,
-            discountExpiry: data.discount_expiry,
+            discountExpiry: user.discount_expiry,
             error: null
         };
     } catch (error) {
@@ -297,15 +334,16 @@ async function consumeDiscount(userId) {
     }
 
     try {
-        const { data, error } = await supabase
+        const { data: updateData, error } = await supabase
             .from('users')
             .update({ first_booking_discount: false })
             .eq('id', userId)
-            .select()
-            .single();
+            .select();
 
         if (error) throw error;
-        return { data, error: null };
+        
+        // Return first item or null if no rows updated
+        return { data: updateData?.[0] ?? null, error: null };
     } catch (error) {
         console.error('Consume discount error:', error);
         return { data: null, error };

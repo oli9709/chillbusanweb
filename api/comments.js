@@ -63,13 +63,35 @@ export default async function handler(req, res) {
 
     // Handle POST request - Add new comment
     if (req.method === 'POST') {
+      // Rate limiting: Check IP address (basic implementation)
+      const clientIp = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection?.remoteAddress || 'unknown';
+      const rateLimitKey = `comment_${clientIp}`;
+      
+      // In production, use Redis or similar for rate limiting
+      // For now, we'll rely on Supabase RLS policies and input validation
+      
       const { name, text } = req.body;
 
       // Validate required fields
       if (!name || !text) {
         return res.status(400).json({ 
           success: false,
-          error: 'Name and text are required' 
+          error: 'Please provide both your name and comment text' 
+        });
+      }
+
+      // Enhanced validation
+      if (name.length < 2 || name.length > 50) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Name must be between 2 and 50 characters' 
+        });
+      }
+
+      if (text.length < 10 || text.length > 500) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Comment must be between 10 and 500 characters' 
         });
       }
 
@@ -81,22 +103,31 @@ export default async function handler(req, res) {
       if (!sanitizedName || !sanitizedText) {
         return res.status(400).json({ 
           success: false,
-          error: 'Invalid input data' 
+          error: 'Invalid input data. Please check your comment and try again.' 
         });
       }
 
       // Insert comment into database
-      const { data: newComment, error: insertError } = await supabase
+      const { data: commentData, error: insertError } = await supabase
         .from('comments')
         .insert({ name: sanitizedName, text: sanitizedText })
-        .select('id, name, text, created_at')
-        .single();
+        .select('id, name, text, created_at');
 
       if (insertError) {
         console.error('Error inserting comment:', insertError);
         return res.status(500).json({
           success: false,
           error: 'Failed to create comment'
+        });
+      }
+
+      // Get first item from array (INSERT should return one row)
+      const newComment = commentData?.[0] ?? null;
+      
+      if (!newComment) {
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create comment - no data returned'
         });
       }
 

@@ -54,12 +54,11 @@ export default async function handler(req, res) {
         }
         
         // Update users table to mark discount as used
-        const { data, error } = await supabase
+        const { data: updateData, error } = await supabase
             .from('users')
             .update({ first_booking_discount: false })
             .eq('id', userId)
-            .select()
-            .single();
+            .select();
         
         if (error) {
             console.error('Error updating discount status:', error);
@@ -70,12 +69,15 @@ export default async function handler(req, res) {
             });
         }
 
+        // Get first item from array (should be only one since we're updating by unique ID)
+        const updatedUser = updateData?.[0] ?? null;
+
         console.log(`Discount consumed for user: ${userId}`);
         
         return res.status(200).json({
             success: true,
             message: 'Discount consumed successfully',
-            data
+            data: updatedUser
         });
 
     } catch (error) {

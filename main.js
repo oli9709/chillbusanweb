@@ -35,6 +35,58 @@ function trackPageView() {
 // Track initial page view
 document.addEventListener('DOMContentLoaded', function() {
     trackPageView();
+    
+    // Track tour card clicks
+    const tourCards = document.querySelectorAll('.tour-card');
+    tourCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't track if clicking on the button (button has its own tracking)
+            if (e.target.closest('.details-button')) {
+                return;
+            }
+            
+            // Extract tour name from card
+            const tourTitle = card.querySelector('h3');
+            const tourName = tourTitle ? tourTitle.textContent.trim() : 'Unknown Tour';
+            
+            trackEvent('tour_view', { tour_name: tourName });
+        });
+    });
+    
+    // Track "Book Now" button clicks (removed duplicate tracking)
+    const bookButtons = document.querySelectorAll('.details-button');
+    bookButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Get tour name from data attribute or card title
+            const tourName = button.getAttribute('data-tour-name') || 
+                            (() => {
+                                const card = button.closest('.tour-card');
+                                if (card) {
+                                    const tourTitle = card.querySelector('h3');
+                                    return tourTitle ? tourTitle.textContent.trim() : 'Unknown Tour';
+                                }
+                                return 'Unknown Tour';
+                            })();
+            
+            trackEvent('book_now_clicked', { tour_name: tourName });
+        });
+    });
+    
+    // Track form submissions (additional tracking for forms without inline handlers)
+    const submitButtons = document.querySelectorAll('.submit-button, .submit-btn');
+    submitButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const form = button.closest('form');
+            if (form) {
+                const formId = form.id || form.className || 'unknown_form';
+                // Only track if not already tracked by form submit handler
+                if (!form.dataset.tracked) {
+                    trackEvent('booking_submitted', { form_type: formId });
+                    form.dataset.tracked = 'true';
+                }
+            }
+        });
+    });
 });
 
 // Track page views on navigation (for SPA-like behavior)
@@ -1753,17 +1805,27 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingMsg.innerHTML = '<div style="margin-bottom: 15px;"><i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #4A90E2;"></i></div><p style="margin: 0; font-weight: 600;">Processing your booking...</p><p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #666;">Please wait...</p>';
         document.body.appendChild(loadingMsg);
 
+        // Track booking started
+        trackEvent('booking_started', {
+            tour_type: 'Custom Tour',
+            locations_count: selectedLocations.length,
+            has_discount: hasDiscount,
+            total_price: finalTotal
+        });
+
         // Send booking to createBooking API
         try {
             if (typeof createBooking !== 'undefined') {
                 const result = await createBooking(bookingData);
                 
-                // Track successful booking submission
-                trackEvent('booking_submitted', {
+                // Track successful booking completion
+                trackEvent('booking_completed', {
                     tour_type: 'Custom Tour',
                     booking_id: result.bookingId || 'pending',
                     total_price: finalTotal,
-                    guests: numberOfGuests
+                    guests: numberOfGuests,
+                    discount_applied: hasDiscount,
+                    discount_amount: hasDiscount ? discountAmount : 0
                 });
                 
                 // Remove loading message
@@ -1771,18 +1833,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.body.removeChild(loadingMsg);
                 }
 
-                // Show success message
+                // Show success message (XSS-safe)
                 const successMsg = document.createElement('div');
                 successMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000; text-align: center; min-width: 300px; max-width: 400px;';
+                
+                // Create elements safely to prevent XSS
                 successMsg.innerHTML = `
                     <div style="margin-bottom: 15px; color: #27ae60; font-size: 3rem;">✓</div>
                     <h3 style="margin: 0 0 10px 0; color: #2c3e50;">Booking Confirmed!</h3>
-                    <p style="margin: 5px 0; color: #34495e;"><strong>Booking ID:</strong> ${result.bookingId}</p>
+                    <p id="booking-id-text" style="margin: 5px 0; color: #34495e;"></p>
                     <p style="margin: 10px 0; color: #34495e; font-size: 0.9rem;">A confirmation email with PDF has been sent to:</p>
-                    <p style="margin: 5px 0; color: #4A90E2; font-weight: 600;">${customerEmail}</p>
+                    <p id="customer-email-text" style="margin: 5px 0; color: #4A90E2; font-weight: 600;"></p>
                     <p style="margin: 15px 0 0 0; color: #7f8c8d; font-size: 0.85rem;">Please check your inbox.</p>
                     <button onclick="this.parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #4A90E2; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Close</button>
                 `;
+                
+                // Safely set booking ID and email using textContent
+                const bookingIdEl = successMsg.querySelector('#booking-id-text');
+                if (bookingIdEl) {
+                    bookingIdEl.innerHTML = `<strong>Booking ID:</strong> `;
+                    const bookingIdSpan = document.createElement('span');
+                    bookingIdSpan.textContent = String(result.bookingId || '');
+                    bookingIdEl.appendChild(bookingIdSpan);
+                }
+                
+                const emailEl = successMsg.querySelector('#customer-email-text');
+                if (emailEl) {
+                    emailEl.textContent = customerEmail;
+                }
+                
                 document.body.appendChild(successMsg);
                 
                 // Auto-remove success message after 10 seconds
@@ -1805,16 +1884,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.body.removeChild(loadingMsg);
             }
             
-            // Show error message (DO NOT open email client)
+            // Show error message (XSS-safe, DO NOT open email client)
             const errorMsg = document.createElement('div');
             errorMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 10000; text-align: center; min-width: 300px; max-width: 400px;';
             errorMsg.innerHTML = `
                 <div style="margin-bottom: 15px; color: #e74c3c; font-size: 3rem;">✗</div>
                 <h3 style="margin: 0 0 10px 0; color: #2c3e50;">Booking Failed</h3>
-                <p style="margin: 10px 0; color: #34495e;">${error.message || 'Failed to create booking. Please try again.'}</p>
+                <p id="error-message-text" style="margin: 10px 0; color: #34495e;"></p>
                 <p style="margin: 15px 0 0 0; color: #7f8c8d; font-size: 0.85rem;">If the problem persists, please contact us directly.</p>
                 <button onclick="this.parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">Close</button>
             `;
+            
+            // Safely set error message using textContent to prevent XSS
+            const errorTextEl = errorMsg.querySelector('#error-message-text');
+            if (errorTextEl) {
+                errorTextEl.textContent = error.message || 'Failed to create booking. Please try again.';
+            }
+            
             document.body.appendChild(errorMsg);
             
             // Auto-remove error message after 10 seconds
