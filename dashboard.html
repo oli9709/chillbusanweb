@@ -62,6 +62,9 @@
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
         }
+        .dashboard-card[style*="grid-column"] {
+            grid-column: 1 / -1;
+        }
         .dashboard-card {
             background: white;
             border-radius: 15px;
@@ -135,6 +138,160 @@
             padding: 40px;
             color: #666;
         }
+        .booking-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .booking-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .booking-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .booking-card-header h3 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            font-family: 'Lora', serif;
+        }
+        .booking-date {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status-refunded {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .booking-card-body {
+            margin-bottom: 20px;
+        }
+        .booking-price {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .price-main {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .price-krw {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .price-usd {
+            font-size: 1rem;
+            color: #666;
+        }
+        .discount-info {
+            margin: 5px 0 0 0;
+            font-size: 0.85rem;
+            color: #4a90e2;
+            font-weight: 500;
+        }
+        .booking-items {
+            margin-top: 15px;
+        }
+        .booking-items h4 {
+            margin: 0 0 10px 0;
+            font-size: 0.95rem;
+            color: #666;
+            font-weight: 600;
+        }
+        .booking-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+        .booking-item-row:last-child {
+            border-bottom: none;
+        }
+        .booking-card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-top: 15px;
+            border-top: 2px solid #f0f0f0;
+        }
+        .btn-action {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-pay-now {
+            background: linear-gradient(135deg, #4A90E2, #65C7D0);
+            color: white;
+        }
+        .btn-pay-now:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+        }
+        .btn-download {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-download:hover {
+            background: #5a6268;
+        }
+        .btn-refund {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-refund:hover {
+            background: #c82333;
+        }
+        .btn-link {
+            color: #4a90e2;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 10px 0;
+            align-self: center;
+        }
+        .btn-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -165,7 +322,7 @@
             </div>
 
             <!-- My Bookings Card -->
-            <div class="dashboard-card">
+            <div class="dashboard-card" style="grid-column: 1 / -1;">
                 <h2><i class="fas fa-calendar-check"></i> My Bookings</h2>
                 <div id="bookings-container">
                     <div class="loading">
@@ -278,7 +435,18 @@
                     return;
                 }
 
-                if (hasDiscount && discountExpiry) {
+                // Handle case where user doesn't exist (status returns hasDiscount: false, discountExpiry: null)
+                if (hasDiscount === false && discountExpiry === null && !error) {
+                    // User might not have discount record yet - show as available
+                    bonusStatusDiv.className = 'bonus-status active';
+                    bonusStatusDiv.innerHTML = `
+                        <i class="fas fa-gift"></i>
+                        <div>
+                            <p style="margin: 0; font-weight: 600;">10% Welcome Discount Available!</p>
+                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; opacity: 0.9;">Use it on your first booking</p>
+                        </div>
+                    `;
+                } else if (hasDiscount && discountExpiry) {
                     const expiryDate = new Date(discountExpiry);
                     const now = new Date();
                     const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
@@ -330,40 +498,17 @@
         // Load user bookings with improved error handling
         async function loadBookings(userId) {
             try {
-                const response = await fetch(`/api/getUserBookings?userId=${userId}`);
+                // Use new API endpoint
+                const response = await fetch(`/api/users/${userId}/bookings`);
                 
                 if (!response.ok) {
                     throw new Error(`Server error: ${response.status}`);
                 }
                 
-                const result = await response.json();
+                const bookings = await response.json();
 
-                if (result.success && result.bookings && result.bookings.length > 0) {
-                    const bookingsList = document.createElement('ul');
-                    bookingsList.className = 'bookings-list';
-                    
-                    // Helper function to escape HTML (XSS prevention)
-                    function escapeHtml(text) {
-                        const div = document.createElement('div');
-                        div.textContent = text;
-                        return div.innerHTML;
-                    }
-                    
-                    result.bookings.forEach(booking => {
-                        const bookingItem = document.createElement('li');
-                        bookingItem.className = 'booking-item';
-                        bookingItem.innerHTML = `
-                            <h3>${escapeHtml(booking.tour || 'Custom Tour')}</h3>
-                            <p><i class="fas fa-calendar"></i> ${escapeHtml(booking.date || '')}</p>
-                            <p><i class="fas fa-users"></i> ${booking.people || 0} ${(booking.people || 0) === 1 ? 'guest' : 'guests'}</p>
-                            <p><i class="fas fa-dollar-sign"></i> $${booking.total_price || 0}</p>
-                        `;
-                        bookingsList.appendChild(bookingItem);
-                    });
-                    
-                    bookingsContainer.innerHTML = '';
-                    bookingsContainer.appendChild(bookingsList);
-                } else {
+                // Handle empty array
+                if (!bookings || bookings.length === 0) {
                     bookingsContainer.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-calendar-times"></i>
@@ -373,7 +518,12 @@
                             </a>
                         </div>
                     `;
+                    return;
                 }
+
+                // Render booking cards
+                renderBookingCards(bookings);
+                
             } catch (error) {
                 console.error('Error loading bookings:', error);
                 
@@ -403,6 +553,235 @@
                     </div>
                 `;
             }
+        }
+
+        // Render booking cards
+        function renderBookingCards(bookings) {
+            bookingsContainer.innerHTML = '';
+            
+            bookings.forEach(booking => {
+                const card = createBookingCard(booking);
+                bookingsContainer.appendChild(card);
+            });
+        }
+
+        // Create booking card element
+        function createBookingCard(booking) {
+            const card = document.createElement('div');
+            card.className = 'booking-card';
+            
+            // Helper to escape HTML
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            // Format date
+            const bookingDate = booking.created_at ? new Date(booking.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }) : 'N/A';
+            
+            // Calculate USD (approximate: 1 USD = 1300 KRW)
+            const usdAmount = Math.round((booking.final_amount_krw || 0) / 1300);
+            
+            // Status badge
+            const statusBadge = getStatusBadge(booking.status);
+            
+            // Items list
+            const itemsHtml = booking.items && booking.items.length > 0
+                ? booking.items.map(item => `
+                    <div class="booking-item-row">
+                        <span>${escapeHtml(item.name)}</span>
+                        <span>₩${(item.unit_price_krw || 0).toLocaleString()} × ${item.quantity || 1}</span>
+                    </div>
+                `).join('')
+                : '<p style="color: #999; font-size: 0.9rem;">No items</p>';
+            
+            // Action buttons
+            const actionsHtml = getBookingActions(booking);
+            
+            card.innerHTML = `
+                <div class="booking-card-header">
+                    <div>
+                        <h3>Booking ${escapeHtml(booking.id.substring(0, 8))}...</h3>
+                        <p class="booking-date"><i class="fas fa-calendar"></i> ${bookingDate}</p>
+                    </div>
+                    ${statusBadge}
+                </div>
+                <div class="booking-card-body">
+                    <div class="booking-price">
+                        <div class="price-main">
+                            <span class="price-krw">₩${(booking.final_amount_krw || 0).toLocaleString()}</span>
+                            <span class="price-usd">≈ $${usdAmount} USD</span>
+                        </div>
+                        ${booking.discount_percent > 0 ? `
+                            <p class="discount-info">${booking.discount_percent}% discount applied</p>
+                        ` : ''}
+                    </div>
+                    <div class="booking-items">
+                        <h4>Items:</h4>
+                        ${itemsHtml}
+                    </div>
+                </div>
+                <div class="booking-card-actions">
+                    ${actionsHtml}
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Get status badge HTML
+        function getStatusBadge(status) {
+            const badges = {
+                'pending': '<span class="status-badge status-pending">Pending</span>',
+                'paid': '<span class="status-badge status-paid">Paid</span>',
+                'cancelled': '<span class="status-badge status-cancelled">Cancelled</span>',
+                'refunded': '<span class="status-badge status-refunded">Refunded</span>'
+            };
+            return badges[status] || '<span class="status-badge">Unknown</span>';
+        }
+
+        // Get booking actions HTML
+        function getBookingActions(booking) {
+            let actions = [];
+            
+            // Download PDF (always available)
+            actions.push(`
+                <button onclick="downloadBookingPDF('${booking.id}')" class="btn-action btn-download">
+                    <i class="fas fa-download"></i> Download PDF
+                </button>
+            `);
+            
+            // Conditional actions based on status and payment_option
+            if (booking.status === 'pending' && booking.payment_option === 'pay_now') {
+                // Pay Now button
+                actions.push(`
+                    <button onclick="payNowBooking('${booking.id}')" class="btn-action btn-pay-now">
+                        <i class="fas fa-credit-card"></i> Pay Now
+                    </button>
+                `);
+                // Pay After link
+                actions.push(`
+                    <a href="#" onclick="event.preventDefault(); changeToPayAfter('${booking.id}');" class="btn-link">
+                        Pay After
+                    </a>
+                `);
+            } else if (booking.status === 'paid') {
+                // Request Refund button
+                actions.push(`
+                    <button onclick="requestRefund('${booking.id}')" class="btn-action btn-refund">
+                        <i class="fas fa-undo"></i> Request Refund
+                    </button>
+                `);
+            }
+            
+            return actions.join('');
+        }
+
+        // Pay Now - Create Stripe session
+        async function payNowBooking(bookingId) {
+            try {
+                const response = await fetch(`/api/bookings/${bookingId}/create-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.checkoutUrl) {
+                    // Redirect to Stripe Checkout
+                    window.location.href = result.checkoutUrl;
+                } else {
+                    throw new Error(result.message || 'Failed to create payment session');
+                }
+            } catch (error) {
+                console.error('Error creating payment session:', error);
+                alert('Failed to create payment session: ' + error.message);
+            }
+        }
+
+        // Change to Pay After
+        async function changeToPayAfter(bookingId) {
+            if (!confirm('Change payment option to "Pay After"? You will pay on the day of the tour.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/bookings/${bookingId}/update-payment-option`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Reload bookings to show updated status
+                    const user = await checkAuth();
+                    if (user) {
+                        await loadBookings(user.id);
+                    }
+                } else {
+                    throw new Error(result.message || 'Failed to update payment option');
+                }
+            } catch (error) {
+                console.error('Error updating payment option:', error);
+                alert('Failed to update payment option: ' + error.message);
+            }
+        }
+
+        // Request Refund
+        async function requestRefund(bookingId) {
+            if (!confirm('Request a refund for this booking? We will process your request within 24-48 hours.')) {
+                return;
+            }
+            
+            const reason = prompt('Please provide a reason for the refund (optional):') || '';
+            
+            try {
+                const { user } = await window.supabaseAuth.getCurrentUser();
+                if (!user) {
+                    throw new Error('Please log in to request a refund');
+                }
+                
+                const response = await fetch('/api/refunds/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bookingId: bookingId,
+                        reason: reason,
+                        userId: user.id
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Refund request submitted successfully! We will process it within 24-48 hours.');
+                    // Reload bookings to show updated status
+                    await loadBookings(user.id);
+                } else {
+                    throw new Error(result.message || 'Failed to create refund request');
+                }
+            } catch (error) {
+                console.error('Error requesting refund:', error);
+                alert('Failed to request refund: ' + error.message);
+            }
+        }
+
+        // Download PDF
+        function downloadBookingPDF(bookingId) {
+            window.open(`/api/bookings/${bookingId}/download-pdf`, '_blank');
         }
 
         // Logout

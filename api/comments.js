@@ -108,10 +108,12 @@ export default async function handler(req, res) {
       }
 
       // Insert comment into database
+      // Use .maybeSingle() to handle edge cases gracefully
       const { data: commentData, error: insertError } = await supabase
         .from('comments')
         .insert({ name: sanitizedName, text: sanitizedText })
-        .select('id, name, text, created_at');
+        .select('id, name, text, created_at')
+        .maybeSingle();
 
       if (insertError) {
         console.error('Error inserting comment:', insertError);
@@ -121,19 +123,18 @@ export default async function handler(req, res) {
         });
       }
 
-      // Get first item from array (INSERT should return one row)
-      const newComment = commentData?.[0] ?? null;
-      
-      if (!newComment) {
+      // Gracefully handle no data state
+      if (!commentData) {
         return res.status(500).json({
           success: false,
-          error: 'Failed to create comment - no data returned'
+          error: 'Failed to create comment - no data returned',
+          status: 'unused'
         });
       }
 
       return res.status(200).json({
         success: true,
-        comment: newComment
+        comment: commentData
       });
     }
 

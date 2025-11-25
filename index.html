@@ -200,7 +200,7 @@
                             <li>🏞️ Secret Scenic Spots & Markets - Guide's special picks!</li>
                         </ol>
                     </div>
-                    <button class="details-button" data-tour-name="Busan Hidden Gems, Beaches & Local Food" onclick="window.open('https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-hidden-gems-beaches-and-local-food-private-tour-t942375/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
+                    <button class="details-button" data-tour-name="Busan Hidden Gems, Beaches & Local Food" onclick="openBookingModal({id: 'hidden-gems', name: 'Busan Hidden Gems, Beaches & Local Food', price_krw: 289000})">Book This Tour</button>
                 </div>
             </div>
 
@@ -228,7 +228,7 @@
                             <li>🎬 Recreate your favorite K-Drama scenes!</li>
                         </ol>
                     </div>
-                    <button class="details-button" data-tour-name="K-Drama Day Tour with Pet Café & Picnic" onclick="window.open('https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-guided-k-drama-day-tour-with-pet-cafe-picnic-t996462/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
+                    <button class="details-button" data-tour-name="K-Drama Day Tour with Pet Café & Picnic" onclick="openBookingModal({id: 'k-drama', name: 'K-Drama Day Tour with Pet Café & Picnic', price_krw: 289000})">Book This Tour</button>
                 </div>
             </div>
 
@@ -256,7 +256,7 @@
                             <li>👥 Meet new people and make memories!</li>
                         </ol>
                     </div>
-                    <button class="details-button" data-tour-name="Busan Nightclub Crawl – Dance, Drink & Party All Night" onclick="window.open('https://www.getyourguide.com/busan-l32281/busan-nightclub-crawl-dance-drink-party-all-night-t1087363/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
+                    <button class="details-button" data-tour-name="Busan Nightclub Crawl – Dance, Drink & Party All Night" onclick="openBookingModal({id: 'nightclub-crawl', name: 'Busan Nightclub Crawl – Dance, Drink & Party All Night', price_krw: 150000})">Book This Tour</button>
                 </div>
             </div>
 
@@ -284,7 +284,7 @@
                             <li>📸 Capture Instagram-worthy moments</li>
                         </ol>
                     </div>
-                    <button class="details-button" data-tour-name="Busan Luxury Ocean Journey – Blue Line Capsule & Yacht" onclick="window.open('https://www.getyourguide.com/busan-l32281/busan-luxury-ocean-journey-blue-line-capsule-yacht-t1087094/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details', '_blank')">Book This Tour</button>
+                    <button class="details-button" data-tour-name="Busan Luxury Ocean Journey – Blue Line Capsule & Yacht" onclick="openBookingModal({id: 'luxury-ocean', name: 'Busan Luxury Ocean Journey – Blue Line Capsule & Yacht', price_krw: 350000})">Book This Tour</button>
                 </div>
             </div>
         </div>
@@ -983,6 +983,118 @@
     </script>
     <script src="src/utils/supabase.js"></script>
     <script src="utils/bookingAPI.js"></script>
+    
+    <!-- Booking Modal Styles -->
+    <link rel="stylesheet" href="components/bookingModal.css">
+    
+    <!-- Booking Modal HTML -->
+    <div id="bookingModal" class="booking-modal">
+        <div class="booking-modal-content">
+            <span class="booking-modal-close">&times;</span>
+            <h2>Book Your Tour</h2>
+            <form id="bookingForm">
+                <input type="hidden" id="bookingTourId" name="tourId">
+                <input type="hidden" id="bookingTourName" name="tourName">
+                <input type="hidden" id="bookingTourPrice" name="tourPrice">
+                <div class="form-group">
+                    <label for="bookingDate">Tour Date *</label>
+                    <input type="date" id="bookingDate" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookingTime">Start Time *</label>
+                    <input type="time" id="bookingTime" name="time" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookingGuests">Number of Guests *</label>
+                    <input type="number" id="bookingGuests" name="guests" min="1" max="10" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookingName">Your Name *</label>
+                    <input type="text" id="bookingName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookingEmail">Email *</label>
+                    <input type="email" id="bookingEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookingPhone">Phone Number *</label>
+                    <input type="tel" id="bookingPhone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="bookingPickup">Pickup Location *</label>
+                    <input type="text" id="bookingPickup" name="pickup" placeholder="e.g., Haeundae Beach, Hotel name, etc." required>
+                </div>
+                <div class="form-group">
+                    <label>Add-ons (Optional)</label>
+                    <div id="addonsContainer" class="addons-container"></div>
+                </div>
+                <div class="form-group">
+                    <label>Payment Option *</label>
+                    <div class="payment-options">
+                        <label class="payment-option">
+                            <input type="radio" name="paymentOption" value="pay_now" checked>
+                            <span>Pay Now <span class="discount-badge">10% OFF</span></span>
+                            <small>Secure payment via Stripe</small>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentOption" value="pay_after">
+                            <span>Pay After</span>
+                            <small>Pay on the day of the tour</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="price-summary">
+                    <div class="price-row">
+                        <span>Tour Price:</span>
+                        <span id="basePrice">₩0</span>
+                    </div>
+                    <div class="price-row" id="addonsPriceRow" style="display: none;">
+                        <span>Add-ons:</span>
+                        <span id="addonsPrice">₩0</span>
+                    </div>
+                    <div class="price-row" id="discountRow" style="display: none;">
+                        <span>Discount (10%):</span>
+                        <span id="discountAmount" class="discount">-₩0</span>
+                    </div>
+                    <div class="price-row total">
+                        <span>Total:</span>
+                        <span id="totalPrice">₩0</span>
+                    </div>
+                </div>
+                <button type="submit" class="booking-submit-btn" id="bookingSubmitBtn">
+                    <span id="submitBtnText">Complete Booking</span>
+                    <span id="submitBtnLoading" class="loading-spinner" style="display: none;"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Success Modal -->
+    <div id="bookingSuccessModal" class="booking-modal">
+        <div class="booking-modal-content success-modal">
+            <span class="booking-modal-close" onclick="closeBookingSuccessModal()">&times;</span>
+            <div class="success-icon">✓</div>
+            <h2>Booking Confirmed!</h2>
+            <p>Your booking has been successfully created.</p>
+            <div class="booking-id-display">
+                <strong>Booking ID:</strong>
+                <code id="successBookingId"></code>
+            </div>
+            <div class="success-instructions">
+                <h3>What's Next?</h3>
+                <ul>
+                    <li>We'll send you a confirmation email shortly</li>
+                    <li>Please arrive at the pickup location 10 minutes before your scheduled time</li>
+                    <li>Payment will be collected on the day of the tour</li>
+                    <li>If you have any questions, contact us at +82 010-3973-2052</li>
+                </ul>
+            </div>
+            <button onclick="closeBookingSuccessModal()" class="booking-submit-btn">Close</button>
+        </div>
+    </div>
+    
+    <!-- Booking Modal Script -->
+    <script src="components/bookingModal.js"></script>
     <script src="main.js"></script>
     <script>
         // Update navigation based on auth status after scripts load

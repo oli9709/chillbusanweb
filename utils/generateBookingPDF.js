@@ -39,8 +39,7 @@ async function generateBookingPDF(bookingData) {
             doc.on('data', chunk => chunks.push(chunk));
             doc.on('end', () => {
                 const buffer = Buffer.concat(chunks);
-                const fileName = `ChillBusanTour-${bookingData.bookingId}.pdf`;
-                resolve({ buffer, fileName });
+                resolve(buffer);
             });
             doc.on('error', reject);
 

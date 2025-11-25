@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Chill Busan Tours</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 80px 20px 40px;
+        }
+        .admin-header {
+            max-width: 1400px;
+            margin: 0 auto 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .admin-header h1 {
+            font-family: 'Lora', serif;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4A90E2, #65C7D0);
+            color: white;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .admin-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .admin-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .admin-section h2 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filter-group label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+        }
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .bookings-table, .refunds-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .bookings-table th, .refunds-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #ddd;
+        }
+        .bookings-table td, .refunds-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .bookings-table tr:hover, .refunds-table tr:hover {
+            background: #f8f9fa;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-refunded {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+        .btn-approve:hover {
+            background: #218838;
+        }
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-reject:hover {
+            background: #c82333;
+        }
+        .btn-mark-paid {
+            background: #17a2b8;
+            color: white;
+        }
+        .btn-mark-paid:hover {
+            background: #138496;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
+            <div class="admin-actions">
+                <a href="index.html" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <button class="btn btn-secondary" id="refresh-btn">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-content">
+            <!-- Bookings Section -->
+            <div class="admin-section">
+                <h2><i class="fas fa-calendar-check"></i> Bookings</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="status-filter">
+                            <option value="">All</option>
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="refunded">Refunded</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Payment Option</label>
+                        <select id="payment-filter">
+                            <option value="">All</option>
+                            <option value="pay_now">Pay Now</option>
+                            <option value="pay_after">Pay After</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="align-self: flex-end;">
+                        <button class="btn btn-primary" onclick="loadBookings()">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+                <div id="bookings-container">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading bookings...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Refunds Section -->
+            <div class="admin-section">
+                <h2><i class="fas fa-undo"></i> Refund Requests</h2>
+                <div id="refunds-container">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading refunds...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="src/utils/supabase.js"></script>
+    <script>
+        let currentUserEmail = null;
+
+        // Check admin authentication
+        async function checkAdminAuth() {
+            try {
+                const { user, error } = await window.supabaseAuth.getCurrentUser();
+                
+                if (error || !user) {
+                    alert('Please log in to access the admin panel.');
+                    window.location.href = 'login.html';
+                    return false;
+                }
+
+                currentUserEmail = user.email;
+                
+                // Verify admin email (will be checked on server side)
+                // For now, just store the email for API calls
+                return true;
+            } catch (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Load bookings with filters
+        async function loadBookings() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const paymentFilter = document.getElementById('payment-filter').value;
+
+            const bookingsContainer = document.getElementById('bookings-container');
+            bookingsContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading bookings...</p></div>';
+
+            try {
+                let url = `/api/admin/bookings?email=${encodeURIComponent(currentUserEmail)}`;
+                if (statusFilter) url += `&status=${statusFilter}`;
+                if (paymentFilter) url += `&payment_option=${paymentFilter}`;
+
+                const response = await fetch(url, {
+                    headers: {
+                        'x-user-email': currentUserEmail
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('Unauthorized: Admin access required');
+                    }
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success || !result.bookings || result.bookings.length === 0) {
+                    bookingsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-times"></i>
+                            <p>No bookings found</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderBookings(result.bookings);
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                bookingsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i>
+                        <p>${error.message || 'Failed to load bookings'}</p>
+                        <button class="btn btn-primary" onclick="loadBookings()" style="margin-top: 15px;">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Render bookings table
+        function renderBookings(bookings) {
+            const container = document.getElementById('bookings-container');
+            
+            const table = document.createElement('table');
+            table.className = 'bookings-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${bookings.map(booking => {
+                        const date = new Date(booking.createdAt).toLocaleDateString();
+                        const usdAmount = Math.round(booking.finalAmountKrw / 1300);
+                        const statusBadge = getStatusBadge(booking.status);
+                        const paymentBadge = booking.paymentOption === 'pay_now' 
+                            ? '<span class="status-badge status-paid">Pay Now</span>'
+                            : '<span class="status-badge status-pending">Pay After</span>';
+                        
+                        let actions = '';
+                        if (booking.status === 'pending' && booking.paymentOption === 'pay_after') {
+                            actions = `<button class="btn-sm btn-mark-paid" onclick="markAsPaid('${booking.id}')">
+                                <i class="fas fa-check"></i> Mark Paid
+                            </button>`;
+                        }
+                        
+                        return `
+                            <tr>
+                                <td>${booking.id.substring(0, 8)}...</td>
+                                <td>${escapeHtml(booking.userName || booking.userEmail)}</td>
+                                <td>₩${booking.finalAmountKrw.toLocaleString()} (≈$${usdAmount})</td>
+                                <td>${statusBadge}</td>
+                                <td>${paymentBadge}</td>
+                                <td>${date}</td>
+                                <td>${actions}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        // Load refunds
+        async function loadRefunds() {
+            const refundsContainer = document.getElementById('refunds-container');
+            refundsContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading refunds...</p></div>';
+
+            try {
+                const response = await fetch(`/api/admin/refunds?email=${encodeURIComponent(currentUserEmail)}`, {
+                    headers: {
+                        'x-user-email': currentUserEmail
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('Unauthorized: Admin access required');
+                    }
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success || !result.refunds || result.refunds.length === 0) {
+                    refundsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-undo"></i>
+                            <p>No refund requests</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderRefunds(result.refunds);
+            } catch (error) {
+                console.error('Error loading refunds:', error);
+                refundsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i>
+                        <p>${error.message || 'Failed to load refunds'}</p>
+                        <button class="btn btn-primary" onclick="loadRefunds()" style="margin-top: 15px;">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Render refunds table
+        function renderRefunds(refunds) {
+            const container = document.getElementById('refunds-container');
+            
+            const table = document.createElement('table');
+            table.className = 'refunds-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Refund ID</th>
+                        <th>Booking ID</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Reason</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${refunds.map(refund => {
+                        const date = new Date(refund.createdAt).toLocaleDateString();
+                        const usdAmount = Math.round(refund.amountKrw / 1300);
+                        const statusBadge = getRefundStatusBadge(refund.status);
+                        
+                        let actions = '';
+                        if (refund.status === 'pending') {
+                            actions = `
+                                <button class="btn-sm btn-approve" onclick="approveRefund('${refund.id}')" style="margin-right: 5px;">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn-sm btn-reject" onclick="rejectRefund('${refund.id}')">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            `;
+                        }
+                        
+                        return `
+                            <tr>
+                                <td>${refund.id.substring(0, 8)}...</td>
+                                <td>${refund.bookingId.substring(0, 8)}...</td>
+                                <td>${escapeHtml(refund.booking.userName || refund.booking.userEmail)}</td>
+                                <td>₩${refund.amountKrw.toLocaleString()} (≈$${usdAmount})</td>
+                                <td>${statusBadge}</td>
+                                <td>${escapeHtml(refund.reason || 'N/A')}</td>
+                                <td>${date}</td>
+                                <td>${actions}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        // Approve refund
+        async function approveRefund(refundId) {
+            if (!confirm('Approve this refund? This will process the Stripe refund and update the booking status.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/refunds/${refundId}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': currentUserEmail
+                    },
+                    body: JSON.stringify({ email: currentUserEmail })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Refund approved and processed successfully!');
+                    loadRefunds();
+                    loadBookings(); // Refresh bookings to show updated status
+                } else {
+                    throw new Error(result.message || 'Failed to approve refund');
+                }
+            } catch (error) {
+                console.error('Error approving refund:', error);
+                alert('Failed to approve refund: ' + error.message);
+            }
+        }
+
+        // Reject refund
+        async function rejectRefund(refundId) {
+            const reason = prompt('Enter rejection reason (optional):');
+            
+            try {
+                const response = await fetch(`/api/admin/refunds/${refundId}/reject`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': currentUserEmail
+                    },
+                    body: JSON.stringify({ 
+                        email: currentUserEmail,
+                        rejectionReason: reason || ''
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Refund rejected.');
+                    loadRefunds();
+                } else {
+                    throw new Error(result.message || 'Failed to reject refund');
+                }
+            } catch (error) {
+                console.error('Error rejecting refund:', error);
+                alert('Failed to reject refund: ' + error.message);
+            }
+        }
+
+        // Mark booking as paid
+        async function markAsPaid(bookingId) {
+            const note = prompt('Enter payment note (optional):');
+            
+            try {
+                const response = await fetch(`/api/admin/bookings/${bookingId}/mark-paid`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': currentUserEmail
+                    },
+                    body: JSON.stringify({ 
+                        email: currentUserEmail,
+                        paymentNote: note || ''
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Booking marked as paid.');
+                    loadBookings();
+                } else {
+                    throw new Error(result.message || 'Failed to mark booking as paid');
+                }
+            } catch (error) {
+                console.error('Error marking booking as paid:', error);
+                alert('Failed to mark booking as paid: ' + error.message);
+            }
+        }
+
+        // Helper functions
+        function getStatusBadge(status) {
+            const badges = {
+                'pending': '<span class="status-badge status-pending">Pending</span>',
+                'paid': '<span class="status-badge status-paid">Paid</span>',
+                'refunded': '<span class="status-badge status-refunded">Refunded</span>'
+            };
+            return badges[status] || `<span class="status-badge">${status}</span>`;
+        }
+
+        function getRefundStatusBadge(status) {
+            const badges = {
+                'pending': '<span class="status-badge status-pending">Pending</span>',
+                'completed': '<span class="status-badge status-completed">Completed</span>',
+                'rejected': '<span class="status-badge status-rejected">Rejected</span>'
+            };
+            return badges[status] || `<span class="status-badge">${status}</span>`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Refresh button
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            loadBookings();
+            loadRefunds();
+        });
+
+        // Initialize
+        (async () => {
+            const isAdmin = await checkAdminAuth();
+            if (isAdmin) {
+                await loadBookings();
+                await loadRefunds();
+            }
+        })();
+    </script>
+</body>
+</html>
+

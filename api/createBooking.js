@@ -251,15 +251,20 @@ export default async function handler(req, res) {
         // Consume discount if it was applied
         if (discountApplied && userId) {
             try {
-                const { error: discountError } = await supabase
+                // Use maybeSingle() to handle cases where user doesn't exist
+                const { data: discountUpdate, error: discountError } = await supabase
                     .from('users')
                     .update({ first_booking_discount: false })
-                    .eq('id', userId);
+                    .eq('id', userId)
+                    .select()
+                    .maybeSingle();
                 
                 if (discountError) {
                     console.warn('Failed to consume discount:', discountError);
-                } else {
+                } else if (discountUpdate) {
                     console.log(`Discount consumed for user: ${userId}`);
+                } else {
+                    console.warn(`User ${userId} not found when trying to consume discount`);
                 }
             } catch (error) {
                 console.error('Error consuming discount:', error);

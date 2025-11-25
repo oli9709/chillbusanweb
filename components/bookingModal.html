@@ -1,0 +1,127 @@
+<!-- Booking Modal -->
+<div id="bookingModal" class="booking-modal">
+    <div class="booking-modal-content">
+        <span class="booking-modal-close">&times;</span>
+        <h2>Book Your Tour</h2>
+        <form id="bookingForm">
+            <!-- Tour Info (hidden, populated by JS) -->
+            <input type="hidden" id="bookingTourId" name="tourId">
+            <input type="hidden" id="bookingTourName" name="tourName">
+            <input type="hidden" id="bookingTourPrice" name="tourPrice">
+            
+            <!-- Date & Time -->
+            <div class="form-group">
+                <label for="bookingDate">Tour Date *</label>
+                <input type="date" id="bookingDate" name="date" required min="">
+            </div>
+            
+            <div class="form-group">
+                <label for="bookingTime">Start Time *</label>
+                <input type="time" id="bookingTime" name="time" required>
+            </div>
+            
+            <!-- Guests -->
+            <div class="form-group">
+                <label for="bookingGuests">Number of Guests *</label>
+                <input type="number" id="bookingGuests" name="guests" min="1" max="10" value="1" required>
+            </div>
+            
+            <!-- Customer Info -->
+            <div class="form-group">
+                <label for="bookingName">Your Name *</label>
+                <input type="text" id="bookingName" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="bookingEmail">Email *</label>
+                <input type="email" id="bookingEmail" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="bookingPhone">Phone Number *</label>
+                <input type="tel" id="bookingPhone" name="phone" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="bookingPickup">Pickup Location *</label>
+                <input type="text" id="bookingPickup" name="pickup" placeholder="e.g., Haeundae Beach, Hotel name, etc." required>
+            </div>
+            
+            <!-- Add-ons Section -->
+            <div class="form-group">
+                <label>Add-ons (Optional)</label>
+                <div id="addonsContainer" class="addons-container">
+                    <!-- Add-ons will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Payment Option -->
+            <div class="form-group">
+                <label>Payment Option *</label>
+                <div class="payment-options">
+                    <label class="payment-option">
+                        <input type="radio" name="paymentOption" value="pay_now" checked>
+                        <span>Pay Now <span class="discount-badge">10% OFF</span></span>
+                        <small>Secure payment via Stripe</small>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="paymentOption" value="pay_after">
+                        <span>Pay After</span>
+                        <small>Pay on the day of the tour</small>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Price Summary -->
+            <div class="price-summary">
+                <div class="price-row">
+                    <span>Tour Price:</span>
+                    <span id="basePrice">₩0</span>
+                </div>
+                <div class="price-row" id="addonsPriceRow" style="display: none;">
+                    <span>Add-ons:</span>
+                    <span id="addonsPrice">₩0</span>
+                </div>
+                <div class="price-row" id="discountRow" style="display: none;">
+                    <span>Discount (10%):</span>
+                    <span id="discountAmount" class="discount">-₩0</span>
+                </div>
+                <div class="price-row total">
+                    <span>Total:</span>
+                    <span id="totalPrice">₩0</span>
+                </div>
+            </div>
+            
+            <!-- Submit Button -->
+            <button type="submit" class="booking-submit-btn" id="bookingSubmitBtn">
+                <span id="submitBtnText">Complete Booking</span>
+                <span id="submitBtnLoading" class="loading-spinner" style="display: none;"></span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Success Modal (for pay_after) -->
+<div id="bookingSuccessModal" class="booking-modal">
+    <div class="booking-modal-content success-modal">
+        <span class="booking-modal-close" onclick="closeBookingSuccessModal()">&times;</span>
+        <div class="success-icon">✓</div>
+        <h2>Booking Confirmed!</h2>
+        <p>Your booking has been successfully created.</p>
+        <div class="booking-id-display">
+            <strong>Booking ID:</strong>
+            <code id="successBookingId"></code>
+        </div>
+        <div class="success-instructions">
+            <h3>What's Next?</h3>
+            <ul>
+                <li>We'll send you a confirmation email shortly</li>
+                <li>Please arrive at the pickup location 10 minutes before your scheduled time</li>
+                <li>Payment will be collected on the day of the tour</li>
+                <li>If you have any questions, contact us at +82 010-3973-2052</li>
+            </ul>
+        </div>
+        <button onclick="closeBookingSuccessModal()" class="booking-submit-btn">Close</button>
+    </div>
+</div>
+

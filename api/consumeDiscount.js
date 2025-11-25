@@ -54,11 +54,13 @@ export default async function handler(req, res) {
         }
         
         // Update users table to mark discount as used
+        // Use .maybeSingle() to handle cases where user doesn't exist
         const { data: updateData, error } = await supabase
             .from('users')
             .update({ first_booking_discount: false })
             .eq('id', userId)
-            .select();
+            .select()
+            .maybeSingle();
         
         if (error) {
             console.error('Error updating discount status:', error);
@@ -69,15 +71,21 @@ export default async function handler(req, res) {
             });
         }
 
-        // Get first item from array (should be only one since we're updating by unique ID)
-        const updatedUser = updateData?.[0] ?? null;
+        // Gracefully handle no data state
+        if (!updateData) {
+            return res.status(200).json({
+                success: false,
+                status: 'unused',
+                message: 'User not found or discount already consumed'
+            });
+        }
 
         console.log(`Discount consumed for user: ${userId}`);
         
         return res.status(200).json({
             success: true,
             message: 'Discount consumed successfully',
-            data: updatedUser
+            data: updateData
         });
 
     } catch (error) {

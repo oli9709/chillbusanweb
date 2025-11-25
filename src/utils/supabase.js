@@ -116,30 +116,32 @@ async function signUp(email, password, fullName) {
                     first_booking_discount: true,
                     discount_expiry: discountExpiry
                 })
-                .select();
+                .select()
+                .maybeSingle();
 
             if (dbError) {
-                // If duplicate key error, user already exists - update discount if needed
+                // If duplicate key error, user already exists - check discount status
                 if (dbError.code === '23505') {
                     console.log('User already exists in database, checking discount status...');
-                    // Check if user needs discount reset
-                    const { data: existingUserData } = await supabase
+                    // Check if user needs discount reset using maybeSingle()
+                    const { data: existingUser, error: fetchError } = await supabase
                         .from('users')
                         .select('first_booking_discount, discount_expiry')
                         .eq('id', data.user.id)
-                        .limit(1);
+                        .maybeSingle();
                     
-                    const existingUser = existingUserData?.[0] ?? null;
-                    
-                    // If discount expired or used, don't update
-                    if (existingUser && !existingUser.first_booking_discount) {
+                    if (fetchError) {
+                        console.error('Error fetching existing user:', fetchError);
+                    } else if (existingUser && !existingUser.first_booking_discount) {
                         console.log('User already used discount, not resetting');
                     }
                 } else {
                     console.error('Error creating user record:', dbError);
                 }
-            } else {
+            } else if (insertData) {
                 console.log('User record created with welcome discount (expires in 60 days)');
+            } else {
+                console.warn('User record insert returned no data');
             }
         }
 
@@ -264,18 +266,48 @@ async function getUserDiscountStatus(userId) {
     }
 
     try {
-        const { data: userData, error } = await supabase
+        // Use maybeSingle() to handle cases where user doesn't exist
+        // If multiple rows exist (shouldn't happen with primary key), use limit(1) as fallback
+        const { data: user, error } = await supabase
             .from('users')
             .select('first_booking_discount, discount_expiry')
             .eq('id', userId)
-            .limit(1);
+            .limit(1)
+            .maybeSingle();
 
         if (error) {
+            // Handle "Cannot coerce to single JSON object" error gracefully
+            if (error.code === 'PGRST116' || error.message?.includes('single JSON object')) {
+                console.warn('Multiple user records found, using first one:', error);
+                // Try again with explicit limit and array handling
+                const { data: users, error: retryError } = await supabase
+                    .from('users')
+                    .select('first_booking_discount, discount_expiry')
+                    .eq('id', userId)
+                    .limit(1);
+                
+                if (retryError) {
+                    throw retryError;
+                }
+                
+                const firstUser = users?.[0] ?? null;
+                if (!firstUser) {
+                    return { hasDiscount: false, discountExpiry: null, error: null };
+                }
+                
+                const hasDiscount = firstUser.first_booking_discount && 
+                                   new Date(firstUser.discount_expiry) > new Date();
+                
+                return {
+                    hasDiscount,
+                    discountExpiry: firstUser.discount_expiry,
+                    error: null
+                };
+            }
             throw error;
         }
 
         // If user doesn't exist in users table, create it
-        const user = userData?.[0] ?? null;
         
         if (!user) {
             // User exists in auth but not in users table - create record
@@ -334,16 +366,18 @@ async function consumeDiscount(userId) {
     }
 
     try {
+        // Use maybeSingle() to handle cases where user doesn't exist
         const { data: updateData, error } = await supabase
             .from('users')
             .update({ first_booking_discount: false })
             .eq('id', userId)
-            .select();
+            .select()
+            .maybeSingle();
 
         if (error) throw error;
         
-        // Return first item or null if no rows updated
-        return { data: updateData?.[0] ?? null, error: null };
+        // Return data or null if no rows updated
+        return { data: updateData ?? null, error: null };
     } catch (error) {
         console.error('Consume discount error:', error);
         return { data: null, error };

@@ -72,9 +72,18 @@ export default async function handler(req, res) {
             });
         }
 
+        // Gracefully handle no data state
+        if (!bookings || bookings.length === 0) {
+            return res.status(200).json({
+                success: true,
+                bookings: [],
+                status: 'unused'
+            });
+        }
+
         return res.status(200).json({
             success: true,
-            bookings: bookings || []
+            bookings: bookings
         });
 
     } catch (error) {
