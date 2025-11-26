@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Tour Summary - Chill Busan Tours</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .summary-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 100px 20px 40px;
+        }
+
+        .summary-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .summary-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .summary-header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .summary-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .summary-section h2 {
+            color: var(--text-color);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-section h2 i {
+            color: var(--primary-color);
+        }
+
+        .itinerary-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .itinerary-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .itinerary-item i {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .price-breakdown {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .price-row:last-child {
+            border-bottom: none;
+        }
+
+        .price-row.total {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-top: 10px;
+            padding-top: 20px;
+            border-top: 2px solid var(--primary-color);
+        }
+
+        .price-row.discount {
+            color: #28a745;
+        }
+
+        .notes-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .notes-box textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+
+        .notes-box textarea:focus {
+            outline: none;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .action-button {
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+        }
+
+        .action-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-pay-now {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-reserve {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+        }
+
+        .discount-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .info-value {
+            color: #666;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--primary-color);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .summary-page {
+                padding: 80px 15px 30px;
+            }
+
+            .summary-container {
+                padding: 25px 20px;
+            }
+
+            .summary-header h1 {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <a href="../../index.html" class="nav-logo">Chill Busan Tours</a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../../index.html">Home</a></li>
+            <li><a href="../../index.html#tours">Tours</a></li>
+        </ul>
+    </nav>
+
+    <div class="summary-page">
+        <div class="summary-container">
+            <div class="summary-header">
+                <h1>📋 Your Custom Tour Summary</h1>
+                <p>Review your selections before booking</p>
+            </div>
+
+            <div id="summaryContent">
+                <!-- Itinerary Section -->
+                <div class="summary-section">
+                    <h2><i class="fas fa-route"></i> Itinerary</h2>
+                    <ul class="itinerary-list" id="itineraryList">
+                        <!-- Populated by JavaScript -->
+                    </ul>
+                </div>
+
+                <!-- Tour Details -->
+                <div class="summary-section">
+                    <h2><i class="fas fa-info-circle"></i> Tour Details</h2>
+                    <div class="price-breakdown">
+                        <div class="info-row">
+                            <span class="info-label">Date:</span>
+                            <span class="info-value" id="tourDate">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Start Time:</span>
+                            <span class="info-value" id="startTime">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Duration:</span>
+                            <span class="info-value" id="duration">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Travelers:</span>
+                            <span class="info-value" id="travelers">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Price Breakdown -->
+                <div class="summary-section">
+                    <h2><i class="fas fa-dollar-sign"></i> Price Breakdown</h2>
+                    <div class="price-breakdown" id="priceBreakdown">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Notes Section -->
+                <div class="summary-section">
+                    <h2><i class="fas fa-sticky-note"></i> Additional Notes (Optional)</h2>
+                    <div class="notes-box">
+                        <textarea id="notes" placeholder="Add any special requests, dietary restrictions, or notes for your tour guide..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="action-button btn-pay-now" id="payNowBtn">
+                        <i class="fas fa-credit-card"></i>
+                        Pay Now (10% Off)
+                    </button>
+                    <button class="action-button btn-reserve" id="reserveBtn">
+                        <i class="fas fa-calendar-check"></i>
+                        Reserve Now (Pay After Tour)
+                    </button>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div class="loading" id="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Processing your booking...
+                </div>
+
+                <!-- Error Message -->
+                <div class="error-message" id="errorMessage"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Location mapping for display
+        const locationIcons = {
+            gamcheon: 'fas fa-mountain',
+            gwangalli: 'fas fa-bridge',
+            haeundae: 'fas fa-umbrella-beach',
+            oryukdo: 'fas fa-island',
+            haedong: 'fas fa-temple',
+            hwamyeong: 'fas fa-tree',
+            songdo: 'fas fa-cable-car',
+            blueline: 'fas fa-train',
+            jagalchi: 'fas fa-fish',
+            dadaepo: 'fas fa-sunset'
+        };
+
+        const activityNames = {
+            drone: 'Drone Package',
+            photographer: 'Professional Photographer',
+            pickup: 'Hotel Pickup & Drop-off'
+        };
+
+        // Load data from localStorage
+        const tourData = JSON.parse(localStorage.getItem('customTourData') || '{}');
+
+        if (!tourData.locations || tourData.locations.length === 0) {
+            // Redirect back to builder if no data
+            window.location.href = '/custom-builder';
+        }
+
+        // Map localStorage data to expected format
+        const selectedLocations = tourData.locations || [];
+        const addons = tourData.activities || [];
+        const travelers = tourData.travelers || 1;
+        const tourDate = tourData.date || '';
+        const timeOnly = tourData.startTime || '';
+        const durationHours = tourData.duration || 6;
+        const totalPrice = tourData.price?.total || 0;
+        
+        // Combine date and time for startTime
+        const startTime = tourDate && timeOnly ? `${tourDate}T${timeOnly}:00` : '';
+
+        // Calculate prices
+        const locationPrice = tourData.price?.locations || 0;
+        const addonPrice = tourData.price?.activities || 0;
+        const originalTotal = totalPrice;
+        const discountAmount = Math.round(originalTotal * 0.1);
+        const discountedTotal = originalTotal - discountAmount;
+
+        // Render Itinerary
+        const itineraryList = document.getElementById('itineraryList');
+        selectedLocations.forEach(loc => {
+            const item = document.createElement('li');
+            item.className = 'itinerary-item';
+            const icon = locationIcons[loc.value] || 'fas fa-map-marker-alt';
+            item.innerHTML = `
+                <i class="${icon}"></i>
+                <span>${loc.name}</span>
+            `;
+            itineraryList.appendChild(item);
+        });
+
+        // Render Tour Details
+        document.getElementById('tourDate').textContent = tourDate ? new Date(tourDate).toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        }) : '-';
+        document.getElementById('startTime').textContent = timeOnly || '-';
+        document.getElementById('duration').textContent = `${durationHours} hours`;
+        document.getElementById('travelers').textContent = travelers;
+
+        // Render Price Breakdown
+        const priceBreakdown = document.getElementById('priceBreakdown');
+        
+        // Locations
+        if (locationPrice > 0) {
+            const row = document.createElement('div');
+            row.className = 'price-row';
+            row.innerHTML = `
+                <span>Locations (${selectedLocations.length} × $50)</span>
+                <span>$${locationPrice}</span>
+            `;
+            priceBreakdown.appendChild(row);
+        }
+
+        // Addons
+        addons.forEach(addon => {
+            const row = document.createElement('div');
+            row.className = 'price-row';
+            row.innerHTML = `
+                <span>${activityNames[addon.value] || addon.value}</span>
+                <span>$${addon.price}</span>
+            `;
+            priceBreakdown.appendChild(row);
+        });
+
+        // Original Total
+        const originalRow = document.createElement('div');
+        originalRow.className = 'price-row total';
+        originalRow.innerHTML = `
+            <span>Total</span>
+            <span>$${originalTotal}</span>
+        `;
+        priceBreakdown.appendChild(originalRow);
+
+        // Discount (for Pay Now)
+        const discountRow = document.createElement('div');
+        discountRow.className = 'price-row discount';
+        discountRow.id = 'discountRow';
+        discountRow.style.display = 'none';
+        discountRow.innerHTML = `
+            <span>10% Discount <span class="discount-badge">Pay Now</span></span>
+            <span>-$${discountAmount}</span>
+        `;
+        priceBreakdown.appendChild(discountRow);
+
+        // Discounted Total (for Pay Now)
+        const discountedRow = document.createElement('div');
+        discountedRow.className = 'price-row total';
+        discountedRow.id = 'discountedRow';
+        discountedRow.style.display = 'none';
+        discountedRow.innerHTML = `
+            <span>Total After Discount</span>
+            <span>$${discountedTotal}</span>
+        `;
+        priceBreakdown.appendChild(discountedRow);
+
+        // Show discount when Pay Now button is hovered
+        document.getElementById('payNowBtn').addEventListener('mouseenter', () => {
+            discountRow.style.display = 'flex';
+            discountedRow.style.display = 'flex';
+            originalRow.querySelector('span:last-child').textContent = `$${originalTotal}`;
+        });
+
+        document.getElementById('payNowBtn').addEventListener('mouseleave', () => {
+            discountRow.style.display = 'none';
+            discountedRow.style.display = 'none';
+        });
+
+        // Prepare booking data
+        function prepareBookingData(paymentOption) {
+            return {
+                selectedLocations: selectedLocations.map(loc => loc.value),
+                addons: addons.map(addon => addon.value),
+                travelers: travelers,
+                startTime: startTime, // Already formatted as ISO string
+                durationHours: durationHours,
+                totalPrice: paymentOption === 'pay_now' ? discountedTotal : originalTotal,
+                notes: document.getElementById('notes').value.trim(),
+                paymentOption: paymentOption
+            };
+        }
+
+        // Handle Pay Now
+        document.getElementById('payNowBtn').addEventListener('click', async () => {
+            const button = document.getElementById('payNowBtn');
+            const loading = document.getElementById('loading');
+            const errorMsg = document.getElementById('errorMessage');
+
+            button.disabled = true;
+            loading.classList.add('active');
+            errorMsg.classList.remove('active');
+
+            try {
+                const bookingData = prepareBookingData('pay_now');
+                
+                const response = await fetch('/api/custom/pay-now', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to process payment');
+                }
+
+                if (result.clientSecret) {
+                    // Store booking ID and client secret for Stripe payment
+                    localStorage.setItem('customTourBookingId', result.bookingId);
+                    localStorage.setItem('stripeClientSecret', result.clientSecret);
+                    
+                    // Redirect to payment page or initialize Stripe Elements
+                    // For now, redirect to dashboard with payment info
+                    localStorage.removeItem('customTourData');
+                    window.location.href = `/dashboard?tab=custom&bookingId=${result.bookingId}&payment=required`;
+                } else if (result.bookingId) {
+                    // Fallback: if no clientSecret, just redirect to dashboard
+                    localStorage.removeItem('customTourData');
+                    window.location.href = `/dashboard?tab=custom&bookingId=${result.bookingId}`;
+                } else {
+                    throw new Error('Invalid response from server');
+                }
+            } catch (error) {
+                console.error('Pay Now error:', error);
+                errorMsg.textContent = error.message || 'Failed to process payment. Please try again.';
+                errorMsg.classList.add('active');
+                button.disabled = false;
+                loading.classList.remove('active');
+            }
+        });
+
+        // Handle Reserve Now
+        document.getElementById('reserveBtn').addEventListener('click', async () => {
+            const button = document.getElementById('reserveBtn');
+            const loading = document.getElementById('loading');
+            const errorMsg = document.getElementById('errorMessage');
+
+            button.disabled = true;
+            loading.classList.add('active');
+            errorMsg.classList.remove('active');
+
+            try {
+                const bookingData = prepareBookingData('pay_after');
+                
+                const response = await fetch('/api/custom/reserve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Failed to reserve tour');
+                }
+
+                if (result.bookingId) {
+                    // Clear localStorage
+                    localStorage.removeItem('customTourData');
+                    // Redirect to dashboard
+                    window.location.href = `/dashboard?tab=custom&bookingId=${result.bookingId}`;
+                } else {
+                    throw new Error('Invalid response from server');
+                }
+            } catch (error) {
+                console.error('Reserve error:', error);
+                errorMsg.textContent = error.message || 'Failed to reserve tour. Please try again.';
+                errorMsg.classList.add('active');
+                button.disabled = false;
+                loading.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
+

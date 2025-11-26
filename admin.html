@@ -176,6 +176,13 @@
         .btn-mark-paid:hover {
             background: #138496;
         }
+        .btn-modify {
+            background: #ffc107;
+            color: #000;
+        }
+        .btn-modify:hover {
+            background: #e0a800;
+        }
         .loading {
             text-align: center;
             padding: 40px;
@@ -190,6 +197,148 @@
             font-size: 3rem;
             margin-bottom: 15px;
             opacity: 0.5;
+        }
+        /* Tab Navigation */
+        .admin-tabs {
+            max-width: 1400px;
+            margin: 0 auto 30px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 0 20px;
+        }
+        .tab-button {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .tab-button:hover {
+            color: #4A90E2;
+        }
+        .tab-button.active {
+            color: #4A90E2;
+            border-bottom-color: #4A90E2;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .custom-tours-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .custom-tours-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #ddd;
+        }
+        .custom-tours-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .custom-tours-table tr:hover {
+            background: #f8f9fa;
+        }
+        .status-approved {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .price-input {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            width: 100px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .modal-body label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .modal-body input,
+        .modal-body textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+        .modal-body textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
         }
     </style>
 </head>
@@ -207,10 +356,24 @@
             </div>
         </div>
 
+        <!-- Tab Navigation -->
+        <div class="admin-tabs">
+            <button class="tab-button active" data-tab="bookings" onclick="switchTab('bookings')">
+                <i class="fas fa-calendar-check"></i> Bookings
+            </button>
+            <button class="tab-button" data-tab="custom-tours" onclick="switchTab('custom-tours')">
+                <i class="fas fa-route"></i> Custom Tours
+            </button>
+            <button class="tab-button" data-tab="refunds" onclick="switchTab('refunds')">
+                <i class="fas fa-undo"></i> Refunds
+            </button>
+        </div>
+
         <div class="admin-content">
-            <!-- Bookings Section -->
-            <div class="admin-section">
-                <h2><i class="fas fa-calendar-check"></i> Bookings</h2>
+            <!-- Bookings Tab -->
+            <div class="tab-content active" id="bookings-tab">
+                <div class="admin-section">
+                    <h2><i class="fas fa-calendar-check"></i> Bookings</h2>
                 <div class="filters">
                     <div class="filter-group">
                         <label>Status</label>
@@ -240,17 +403,88 @@
                         <i class="fas fa-spinner fa-spin"></i>
                         <p>Loading bookings...</p>
                     </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Refunds Section -->
-            <div class="admin-section">
-                <h2><i class="fas fa-undo"></i> Refund Requests</h2>
-                <div id="refunds-container">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading refunds...</p>
+            <!-- Custom Tours Tab -->
+            <div class="tab-content" id="custom-tours-tab">
+                <div class="admin-section">
+                    <h2><i class="fas fa-route"></i> Custom Tours</h2>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="custom-status-filter">
+                                <option value="">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="paid">Paid</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="filter-group" style="align-self: flex-end;">
+                            <button class="btn btn-primary" onclick="loadCustomTours()">
+                                <i class="fas fa-filter"></i> Apply Filters
+                            </button>
+                        </div>
                     </div>
+                    <div id="custom-tours-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading custom tours...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Refunds Tab -->
+            <div class="tab-content" id="refunds-tab">
+                <div class="admin-section">
+                    <h2><i class="fas fa-undo"></i> Refund Requests</h2>
+                    <div id="refunds-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading refunds...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modify Price Modal -->
+        <div id="modifyPriceModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Modify Price</h3>
+                    <span class="close" onclick="closeModifyPriceModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <label for="newPriceInput">New Price (USD):</label>
+                    <input type="number" id="newPriceInput" step="0.01" min="0" placeholder="0.00">
+                    <p style="margin-top: 10px; font-size: 0.85rem; color: #666;">Enter the new price in USD</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModifyPriceModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="confirmModifyPrice()">Update Price</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reject Modal -->
+        <div id="rejectModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Reject Custom Tour</h3>
+                    <span class="close" onclick="closeRejectModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <label for="rejectReasonInput">Reason (Optional):</label>
+                    <textarea id="rejectReasonInput" placeholder="Enter reason for rejection..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeRejectModal()">Cancel</button>
+                    <button class="btn btn-reject" onclick="confirmReject()">Reject Tour</button>
                 </div>
             </div>
         </div>
@@ -618,6 +852,293 @@
             loadBookings();
             loadRefunds();
         });
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            // Load data if needed
+            if (tabName === 'custom-tours') {
+                loadCustomTours();
+            } else if (tabName === 'refunds') {
+                loadRefunds();
+            } else if (tabName === 'bookings') {
+                loadBookings();
+            }
+        }
+
+        // Load custom tours
+        async function loadCustomTours() {
+            const statusFilter = document.getElementById('custom-status-filter').value;
+            const container = document.getElementById('custom-tours-container');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Loading custom tours...</p></div>';
+
+            try {
+                let url = `/api/admin/custom-tours?email=${encodeURIComponent(currentUserEmail)}`;
+                if (statusFilter) url += `&status=${statusFilter}`;
+
+                const response = await fetch(url, {
+                    headers: {
+                        'x-user-email': currentUserEmail
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        throw new Error('Unauthorized: Admin access required');
+                    }
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success || !result.customTours || result.customTours.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-route"></i>
+                            <p>No custom tours found</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderCustomTours(result.customTours);
+            } catch (error) {
+                console.error('Error loading custom tours:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: #e74c3c;"></i>
+                        <p>${error.message || 'Failed to load custom tours'}</p>
+                        <button class="btn btn-primary" onclick="loadCustomTours()" style="margin-top: 15px;">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Render custom tours table
+        function renderCustomTours(tours) {
+            const container = document.getElementById('custom-tours-container');
+            
+            const table = document.createElement('table');
+            table.className = 'custom-tours-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Date</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tours.map(tour => {
+                        const date = tour.date ? new Date(tour.date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : 'TBD';
+                        const priceUSD = (tour.totalPrice / 100).toFixed(2);
+                        const statusBadge = getCustomTourStatusBadge(tour.status);
+                        
+                        // Action buttons based on status
+                        let actions = '';
+                        if (tour.status === 'pending' || tour.status === 'approved') {
+                            actions = `
+                                <button class="btn-sm btn-approve" onclick="approveCustomTour('${tour.id}')" style="margin-right: 5px;">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn-sm btn-reject" onclick="openRejectModal('${tour.id}')" style="margin-right: 5px;">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                                <button class="btn-sm btn-modify" onclick="openModifyPriceModal('${tour.id}', ${priceUSD})">
+                                    <i class="fas fa-dollar-sign"></i> Modify Price
+                                </button>
+                            `;
+                        } else if (tour.status === 'rejected' || tour.status === 'cancelled') {
+                            actions = '<span style="color: #999; font-size: 0.85rem;">No actions available</span>';
+                        } else if (tour.status === 'paid') {
+                            actions = '<span style="color: #28a745; font-size: 0.85rem;">Paid</span>';
+                        }
+                        
+                        return `
+                            <tr>
+                                <td>${tour.id.substring(0, 8)}...</td>
+                                <td>${escapeHtml(tour.userName || tour.userEmail)}</td>
+                                <td>${date}</td>
+                                <td>$${priceUSD} USD</td>
+                                <td>${statusBadge}</td>
+                                <td>${actions}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            `;
+            
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+
+        // Get custom tour status badge
+        function getCustomTourStatusBadge(status) {
+            const badges = {
+                'pending': '<span class="status-badge status-pending">Pending</span>',
+                'approved': '<span class="status-badge status-approved">Approved</span>',
+                'rejected': '<span class="status-badge status-rejected">Rejected</span>',
+                'paid': '<span class="status-badge status-paid">Paid</span>',
+                'cancelled': '<span class="status-badge status-cancelled">Cancelled</span>'
+            };
+            return badges[status] || '<span class="status-badge">Unknown</span>';
+        }
+
+        // Approve custom tour
+        async function approveCustomTour(tourId) {
+            if (!confirm('Are you sure you want to approve this custom tour request?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/custom-tours/${tourId}/approve?email=${encodeURIComponent(currentUserEmail)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': currentUserEmail
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Tour approved successfully! An email has been sent to the customer.');
+                    loadCustomTours();
+                } else {
+                    throw new Error(result.message || 'Failed to approve tour');
+                }
+            } catch (error) {
+                console.error('Error approving tour:', error);
+                alert('Failed to approve tour: ' + error.message);
+            }
+        }
+
+        // Reject custom tour
+        let currentRejectTourId = null;
+
+        function openRejectModal(tourId) {
+            currentRejectTourId = tourId;
+            document.getElementById('rejectReasonInput').value = '';
+            document.getElementById('rejectModal').style.display = 'block';
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').style.display = 'none';
+            currentRejectTourId = null;
+        }
+
+        async function confirmReject() {
+            if (!currentRejectTourId) return;
+
+            const reason = document.getElementById('rejectReasonInput').value.trim();
+
+            try {
+                const response = await fetch(`/api/admin/custom-tours/${currentRejectTourId}/reject?email=${encodeURIComponent(currentUserEmail)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': currentUserEmail
+                    },
+                    body: JSON.stringify({ reason: reason })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Tour rejected successfully! An email has been sent to the customer.');
+                    closeRejectModal();
+                    loadCustomTours();
+                } else {
+                    throw new Error(result.message || 'Failed to reject tour');
+                }
+            } catch (error) {
+                console.error('Error rejecting tour:', error);
+                alert('Failed to reject tour: ' + error.message);
+            }
+        }
+
+        // Modify price
+        let currentModifyTourId = null;
+
+        function openModifyPriceModal(tourId, currentPrice) {
+            currentModifyTourId = tourId;
+            document.getElementById('newPriceInput').value = currentPrice;
+            document.getElementById('modifyPriceModal').style.display = 'block';
+        }
+
+        function closeModifyPriceModal() {
+            document.getElementById('modifyPriceModal').style.display = 'none';
+            currentModifyTourId = null;
+        }
+
+        async function confirmModifyPrice() {
+            if (!currentModifyTourId) return;
+
+            const newPrice = parseFloat(document.getElementById('newPriceInput').value);
+
+            if (!newPrice || newPrice <= 0) {
+                alert('Please enter a valid price (greater than 0)');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/custom-tours/${currentModifyTourId}/modify-price?email=${encodeURIComponent(currentUserEmail)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': currentUserEmail
+                    },
+                    body: JSON.stringify({ newPrice: newPrice })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Price updated successfully! An email has been sent to the customer.');
+                    closeModifyPriceModal();
+                    loadCustomTours();
+                } else {
+                    throw new Error(result.message || 'Failed to update price');
+                }
+            } catch (error) {
+                console.error('Error updating price:', error);
+                alert('Failed to update price: ' + error.message);
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modifyModal = document.getElementById('modifyPriceModal');
+            const rejectModal = document.getElementById('rejectModal');
+            if (event.target === modifyModal) {
+                closeModifyPriceModal();
+            }
+            if (event.target === rejectModal) {
+                closeRejectModal();
+            }
+        }
 
         // Initialize
         (async () => {

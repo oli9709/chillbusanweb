@@ -18,7 +18,7 @@ const ToursSection = () => {
         '🍜 Authentic Korean Lunch - Your choice of local favorites',
         '🏞️ Secret Scenic Spots & Markets - Guide\'s special picks!'
       ],
-      bookingUrl: 'https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-hidden-gems-beaches-and-local-food-private-tour-t942375/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details'
+      gygLink: 'https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-hidden-gems-beaches-and-local-food-private-tour-t942375/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details'
     },
     {
       id: 'k-drama',
@@ -35,13 +35,9 @@ const ToursSection = () => {
         '🍱 Picnic with Korean snacks',
         '🎬 Recreate your favorite K-Drama scenes!'
       ],
-      bookingUrl: 'https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-guided-k-drama-day-tour-with-pet-cafe-picnic-t996462/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details'
+      gygLink: 'https://www.getyourguide.com/gamcheon-culture-village-l91316/busan-guided-k-drama-day-tour-with-pet-cafe-picnic-t996462/?utm_source=getyourguide&utm_medium=sharing&utm_campaign=activity_details'
     }
   ];
-
-  const handleBooking = (url) => {
-    window.open(url, '_blank');
-  };
 
   return (
     <section className="tours section" id="tours">
@@ -70,12 +66,20 @@ const ToursSection = () => {
                   ))}
                 </ol>
               </div>
-              <button 
-                className="details-button" 
-                onClick={() => handleBooking(tour.bookingUrl)}
+              <a 
+                href={`/booking/create?tourId=${tour.id}`}
+                className="details-button"
               >
                 Book This Tour
-              </button>
+              </a>
+              <a 
+                href={tour.gygLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="gyg-link"
+              >
+                Or book on GetYourGuide
+              </a>
             </div>
           </div>
         ))}

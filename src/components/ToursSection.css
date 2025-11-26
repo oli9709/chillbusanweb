@@ -135,11 +135,32 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
 }
 
 .details-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(74, 144, 226, 0.3);
+}
+
+.gyg-link {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 8px 0;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.gyg-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+  color: var(--accent-color);
 }
 
 /* Dark mode */

@@ -292,6 +292,121 @@
         .btn-link:hover {
             text-decoration: underline;
         }
+        /* Tab Navigation */
+        .dashboard-tabs {
+            max-width: 1200px;
+            margin: 0 auto 30px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 0 20px;
+        }
+        .tab-button {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .tab-button:hover {
+            color: var(--primary-color);
+        }
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Custom Tour Cards */
+        .custom-tour-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .custom-tour-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .custom-tour-card.cancelled {
+            opacity: 0.6;
+            background: #f8f9fa;
+        }
+        .custom-tour-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .custom-tour-card-header h3 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            font-family: 'Lora', serif;
+        }
+        .itinerary-preview {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .itinerary-preview h4 {
+            margin: 0 0 10px 0;
+            font-size: 0.95rem;
+            color: #666;
+            font-weight: 600;
+        }
+        .location-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 4px 4px 4px 0;
+            color: #2c3e50;
+        }
+        .status-approved {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-cancel:hover {
+            background: #c82333;
+        }
+        .btn-message {
+            background: #17a2b8;
+            color: white;
+        }
+        .btn-message:hover {
+            background: #138496;
+        }
+        .btn-view {
+            background: #28a745;
+            color: white;
+        }
+        .btn-view:hover {
+            background: #218838;
+        }
     </style>
 </head>
 <body>
@@ -308,6 +423,16 @@
             </div>
         </div>
 
+        <!-- Tab Navigation -->
+        <div class="dashboard-tabs">
+            <button class="tab-button active" data-tab="bookings" onclick="switchTab('bookings')">
+                <i class="fas fa-calendar-check"></i> My Bookings
+            </button>
+            <button class="tab-button" data-tab="custom" onclick="switchTab('custom')">
+                <i class="fas fa-route"></i> Custom Tours
+            </button>
+        </div>
+
         <div class="dashboard-content">
             <!-- Welcome Bonus Card -->
             <div class="dashboard-card welcome-bonus-card">
@@ -321,13 +446,28 @@
                 </div>
             </div>
 
-            <!-- My Bookings Card -->
-            <div class="dashboard-card" style="grid-column: 1 / -1;">
-                <h2><i class="fas fa-calendar-check"></i> My Bookings</h2>
-                <div id="bookings-container">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading bookings...</p>
+            <!-- My Bookings Tab -->
+            <div class="tab-content active" id="bookings-tab">
+                <div class="dashboard-card" style="grid-column: 1 / -1;">
+                    <h2><i class="fas fa-calendar-check"></i> My Bookings</h2>
+                    <div id="bookings-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading bookings...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Tours Tab -->
+            <div class="tab-content" id="custom-tab">
+                <div class="dashboard-card" style="grid-column: 1 / -1;">
+                    <h2><i class="fas fa-route"></i> My Custom Tours</h2>
+                    <div id="custom-tours-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading custom tours...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -790,12 +930,307 @@
             window.location.href = 'login.html';
         });
 
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+
+            // Load data if needed
+            if (tabName === 'custom') {
+                const user = window.currentUser;
+                if (user) {
+                    loadCustomTours(user.id);
+                }
+            }
+        }
+
+        // Load custom tours
+        async function loadCustomTours(userId) {
+            const container = document.getElementById('custom-tours-container');
+            
+            try {
+                container.innerHTML = `
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading custom tours...</p>
+                    </div>
+                `;
+
+                const response = await fetch(`/api/user/custom-tours?userId=${userId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const customTours = await response.json();
+
+                if (!customTours || customTours.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-route"></i>
+                            <p>You haven't created any custom tours yet</p>
+                            <a href="/custom-builder" class="btn btn-primary" style="display: inline-block; margin-top: 15px;">
+                                Create Custom Tour
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                renderCustomTourCards(customTours);
+
+            } catch (error) {
+                console.error('Error loading custom tours:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load custom tours</p>
+                        <button onclick="loadCustomTours('${userId}')" class="btn btn-primary" style="display: inline-block; margin-top: 15px;">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Render custom tour cards
+        function renderCustomTourCards(tours) {
+            const container = document.getElementById('custom-tours-container');
+            container.innerHTML = '';
+
+            tours.forEach(tour => {
+                const card = createCustomTourCard(tour);
+                container.appendChild(card);
+            });
+        }
+
+        // Create custom tour card
+        function createCustomTourCard(tour) {
+            const card = document.createElement('div');
+            card.className = `custom-tour-card ${tour.status === 'cancelled' ? 'cancelled' : ''}`;
+
+            // Format date
+            const tourDate = tour.startTime ? new Date(tour.startTime).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : 'N/A';
+
+            // Format price
+            const priceUSD = (tour.totalPrice / 100).toFixed(2);
+
+            // Status badge
+            const statusBadge = getCustomTourStatusBadge(tour.status);
+
+            // Itinerary preview
+            const locations = tour.itinerary?.locations || [];
+            const locationNames = {
+                gamcheon: 'Gamcheon Culture Village',
+                gwangalli: 'Gwangalli Beach & Bridge',
+                haeundae: 'Haeundae Beach',
+                oryukdo: 'Oryukdo Island and Skywalk',
+                haedong: 'Haedong Yonggungsa Temple',
+                hwamyeong: 'Hwamyeong Eco Park',
+                songdo: 'Songdo Beach + Cable Car',
+                blueline: 'Blue Line Park (Capsule train)',
+                jagalchi: 'Jagalchi Fish Market',
+                dadaepo: 'Dadaepo Beach + Sunset'
+            };
+
+            const locationTags = locations.map(loc => 
+                `<span class="location-tag">${locationNames[loc] || loc}</span>`
+            ).join('');
+
+            // Addons preview
+            const addonNames = {
+                drone: 'Drone Package',
+                photographer: 'Professional Photographer',
+                pickup: 'Hotel Pickup & Drop-off'
+            };
+            const addonsList = (tour.addons || []).map(addon => addonNames[addon] || addon).join(', ');
+
+            // Action buttons
+            const actionsHtml = getCustomTourActions(tour);
+
+            card.innerHTML = `
+                <div class="custom-tour-card-header">
+                    <div>
+                        <h3>Custom Tour ${tour.id.substring(0, 8)}...</h3>
+                        <p class="booking-date"><i class="fas fa-calendar"></i> ${tourDate}</p>
+                    </div>
+                    ${statusBadge}
+                </div>
+                <div class="booking-card-body">
+                    <div class="itinerary-preview">
+                        <h4><i class="fas fa-map-marker-alt"></i> Itinerary</h4>
+                        <div>${locationTags || '<span class="location-tag">No locations</span>'}</div>
+                        ${addonsList ? `<p style="margin-top: 10px; font-size: 0.9rem; color: #666;"><strong>Add-ons:</strong> ${addonsList}</p>` : ''}
+                        <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                            <i class="fas fa-users"></i> ${tour.travelers} traveler(s) • 
+                            <i class="fas fa-clock"></i> ${tour.durationHours} hours
+                        </p>
+                    </div>
+                    <div class="booking-price">
+                        <div class="price-main">
+                            <span class="price-krw">$${priceUSD}</span>
+                            <span class="price-usd">USD</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="booking-card-actions">
+                    ${actionsHtml}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Get custom tour status badge
+        function getCustomTourStatusBadge(status) {
+            const badges = {
+                'pending': '<span class="status-badge status-pending">Pending</span>',
+                'approved': '<span class="status-badge status-approved">Approved</span>',
+                'rejected': '<span class="status-badge status-rejected">Rejected</span>',
+                'paid': '<span class="status-badge status-paid">Paid</span>',
+                'cancelled': '<span class="status-badge status-cancelled">Cancelled</span>'
+            };
+            return badges[status] || '<span class="status-badge">Unknown</span>';
+        }
+
+        // Get custom tour actions
+        function getCustomTourActions(tour) {
+            let actions = [];
+
+            if (tour.status === 'pending') {
+                actions.push(`
+                    <button onclick="payNowCustomTour('${tour.id}')" class="btn-action btn-pay-now">
+                        <i class="fas fa-credit-card"></i> Pay Now
+                    </button>
+                `);
+                actions.push(`
+                    <button onclick="cancelCustomTour('${tour.id}')" class="btn-action btn-cancel">
+                        <i class="fas fa-times"></i> Cancel Request
+                    </button>
+                `);
+            } else if (tour.status === 'approved') {
+                actions.push(`
+                    <button onclick="payNowCustomTour('${tour.id}')" class="btn-action btn-pay-now">
+                        <i class="fas fa-credit-card"></i> Pay Now
+                    </button>
+                `);
+                actions.push(`
+                    <button onclick="messageAdmin('${tour.id}')" class="btn-action btn-message">
+                        <i class="fas fa-envelope"></i> Message Admin
+                    </button>
+                `);
+            } else if (tour.status === 'paid') {
+                actions.push(`
+                    <button onclick="viewCustomTourItinerary('${tour.id}')" class="btn-action btn-view">
+                        <i class="fas fa-eye"></i> View Itinerary
+                    </button>
+                `);
+            }
+            // cancelled status shows no buttons (greyed out card)
+
+            return actions.join('');
+        }
+
+        // Pay Now for custom tour
+        async function payNowCustomTour(tourId) {
+            try {
+                // Fetch tour details to get payment intent
+                const response = await fetch(`/api/custom/${tourId}/payment-intent`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.clientSecret) {
+                    // Redirect to Stripe payment or initialize Stripe Elements
+                    // For now, redirect to payment page
+                    window.location.href = `/payment?tourId=${tourId}&clientSecret=${result.clientSecret}`;
+                } else {
+                    throw new Error(result.message || 'Failed to create payment session');
+                }
+            } catch (error) {
+                console.error('Error creating payment session:', error);
+                alert('Failed to create payment session: ' + error.message);
+            }
+        }
+
+        // Cancel custom tour
+        async function cancelCustomTour(tourId) {
+            if (!confirm('Are you sure you want to cancel this custom tour request? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/custom/${tourId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Reload custom tours
+                    const user = window.currentUser;
+                    if (user) {
+                        await loadCustomTours(user.id);
+                    }
+                } else {
+                    throw new Error(result.message || 'Failed to cancel tour');
+                }
+            } catch (error) {
+                console.error('Error cancelling tour:', error);
+                alert('Failed to cancel tour: ' + error.message);
+            }
+        }
+
+        // Message admin
+        function messageAdmin(tourId) {
+            const email = 'chilltours.official@gmail.com';
+            const subject = `Custom Tour ${tourId.substring(0, 8)} - Question`;
+            window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+        }
+
+        // View itinerary
+        function viewCustomTourItinerary(tourId) {
+            // Open modal or redirect to itinerary page
+            alert('Itinerary view coming soon! Tour ID: ' + tourId);
+            // TODO: Implement itinerary modal or page
+        }
+
         // Initialize dashboard
         (async () => {
             const user = await checkAuth();
             if (user) {
+                window.currentUser = user;
                 await loadBonusStatus(user.id);
                 await loadBookings(user.id);
+
+                // Check for tab parameter in URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const tab = urlParams.get('tab');
+                if (tab === 'custom') {
+                    switchTab('custom');
+                }
             }
         })();
     </script>

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Tour Builder - Chill Busan Tours</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .custom-builder-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 100px 20px 40px;
+        }
+
+        .builder-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .builder-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .builder-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .builder-header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .builder-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .builder-section h2 {
+            color: var(--text-color);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .builder-section h2 i {
+            color: var(--primary-color);
+        }
+
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .location-item {
+            position: relative;
+        }
+
+        .location-item input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .location-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .location-item input[type="checkbox"]:checked + label {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .location-item label i {
+            font-size: 1.2rem;
+        }
+
+        .activities-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .activity-item input[type="checkbox"]:checked ~ span {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .activity-item:has(input[type="checkbox"]:checked) {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .price-box {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .price-box h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .price-box .total-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .price-box .price-breakdown {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .price-box .price-breakdown div {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .create-button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .create-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+        }
+
+        .create-button:active {
+            transform: translateY(0);
+        }
+
+        .create-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .location-limit-note {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .custom-builder-page {
+                padding: 80px 15px 30px;
+            }
+
+            .builder-container {
+                padding: 25px 20px;
+            }
+
+            .builder-header h1 {
+                font-size: 2rem;
+            }
+
+            .locations-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .price-box .total-price {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="main-nav">
+        <div class="nav-brand">
+            <a href="index.html" class="nav-logo">Chill Busan Tours</a>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="index.html#tours">Tours</a></li>
+            <li><a href="index.html#stories">Stories</a></li>
+        </ul>
+    </nav>
+
+    <div class="custom-builder-page">
+        <div class="builder-container">
+            <div class="builder-header">
+                <h1>🎨 Build Your Custom Tour</h1>
+                <p>Create your perfect Busan experience</p>
+            </div>
+
+            <form id="customTourForm">
+                <!-- Locations Section -->
+                <div class="builder-section">
+                    <h2><i class="fas fa-map-marker-alt"></i> Select Locations</h2>
+                    <div class="locations-grid" id="locationsGrid">
+                        <!-- Locations will be populated by JavaScript -->
+                    </div>
+                    <div class="location-limit-note">
+                        <strong>Note:</strong> Select 4-5 locations. Each location costs $50.
+                    </div>
+                </div>
+
+                <!-- Activities Section -->
+                <div class="builder-section">
+                    <h2><i class="fas fa-check-circle"></i> Optional Activities</h2>
+                    <div class="activities-list">
+                        <div class="activity-item">
+                            <input type="checkbox" id="drone" name="activities" value="drone" data-price="50">
+                            <span><i class="fas fa-drone"></i> Drone Package ($50)</span>
+                        </div>
+                        <div class="activity-item">
+                            <input type="checkbox" id="photographer" name="activities" value="photographer" data-price="75">
+                            <span><i class="fas fa-camera"></i> Professional Photographer ($75)</span>
+                        </div>
+                        <div class="activity-item">
+                            <input type="checkbox" id="pickup" name="activities" value="pickup" data-price="30">
+                            <span><i class="fas fa-car"></i> Hotel Pickup & Drop-off ($30)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Traveler Count -->
+                <div class="builder-section">
+                    <h2><i class="fas fa-users"></i> Traveler Information</h2>
+                    <div class="input-group">
+                        <label for="travelers">Number of Travelers</label>
+                        <input type="number" id="travelers" name="travelers" min="1" max="10" value="1" required>
+                    </div>
+                </div>
+
+                <!-- Date & Time -->
+                <div class="builder-section">
+                    <h2><i class="fas fa-calendar-alt"></i> Tour Date & Time</h2>
+                    <div class="input-group">
+                        <label for="tourDate">Tour Date</label>
+                        <input type="date" id="tourDate" name="tourDate" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="startTime">Start Time</label>
+                        <input type="time" id="startTime" name="startTime" required>
+                    </div>
+                </div>
+
+                <!-- Duration -->
+                <div class="builder-section">
+                    <h2><i class="fas fa-clock"></i> Tour Duration</h2>
+                    <div class="input-group">
+                        <label for="duration">Duration (hours)</label>
+                        <select id="duration" name="duration" required>
+                            <option value="4">4 hours</option>
+                            <option value="5">5 hours</option>
+                            <option value="6" selected>6 hours</option>
+                            <option value="7">7 hours</option>
+                            <option value="8">8 hours</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Price Calculation Box -->
+                <div class="price-box" id="priceBox">
+                    <h3>Estimated Total Price</h3>
+                    <div class="total-price" id="totalPrice">$0</div>
+                    <div class="price-breakdown" id="priceBreakdown">
+                        <!-- Breakdown will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="create-button" id="createButton">
+                    Create My Custom Tour
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Location data
+        const locations = [
+            { value: 'gamcheon', name: 'Gamcheon Culture Village', icon: 'fas fa-mountain', price: 50 },
+            { value: 'gwangalli', name: 'Gwangalli Beach & Bridge', icon: 'fas fa-bridge', price: 50 },
+            { value: 'haeundae', name: 'Haeundae Beach', icon: 'fas fa-umbrella-beach', price: 50 },
+            { value: 'oryukdo', name: 'Oryukdo Island and Skywalk', icon: 'fas fa-island', price: 50 },
+            { value: 'haedong', name: 'Haedong Yonggungsa Temple', icon: 'fas fa-temple', price: 50 },
+            { value: 'hwamyeong', name: 'Hwamyeong Eco Park', icon: 'fas fa-tree', price: 50 },
+            { value: 'songdo', name: 'Songdo Beach + Cable Car', icon: 'fas fa-cable-car', price: 50 },
+            { value: 'blueline', name: 'Blue Line Park (Capsule train)', icon: 'fas fa-train', price: 50 },
+            { value: 'jagalchi', name: 'Jagalchi Fish Market', icon: 'fas fa-fish', price: 50 },
+            { value: 'dadaepo', name: 'Dadaepo Beach + Sunset', icon: 'fas fa-sunset', price: 50 }
+        ];
+
+        // Activity prices
+        const activityPrices = {
+            drone: 50,
+            photographer: 75,
+            pickup: 30
+        };
+
+        // Initialize locations
+        const locationsGrid = document.getElementById('locationsGrid');
+        locations.forEach(location => {
+            const item = document.createElement('div');
+            item.className = 'location-item';
+            item.innerHTML = `
+                <input type="checkbox" id="loc-${location.value}" name="locations" value="${location.value}" data-price="${location.price}">
+                <label for="loc-${location.value}">
+                    <i class="${location.icon}"></i>
+                    <span>${location.name}</span>
+                </label>
+            `;
+            locationsGrid.appendChild(item);
+        });
+
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tourDate').setAttribute('min', today);
+
+        // Price calculation
+        function calculatePrice() {
+            const selectedLocations = Array.from(document.querySelectorAll('input[name="locations"]:checked'))
+                .map(cb => ({ value: cb.value, price: parseInt(cb.dataset.price) }));
+            
+            const selectedActivities = Array.from(document.querySelectorAll('input[name="activities"]:checked'))
+                .map(cb => ({ value: cb.value, price: parseInt(cb.dataset.price) }));
+
+            const locationTotal = selectedLocations.reduce((sum, loc) => sum + loc.price, 0);
+            const activityTotal = selectedActivities.reduce((sum, act) => sum + act.price, 0);
+            const total = locationTotal + activityTotal;
+
+            // Update total price
+            document.getElementById('totalPrice').textContent = `$${total}`;
+
+            // Update breakdown
+            const breakdown = document.getElementById('priceBreakdown');
+            breakdown.innerHTML = '';
+            
+            if (selectedLocations.length > 0) {
+                const locDiv = document.createElement('div');
+                locDiv.innerHTML = `<span>Locations (${selectedLocations.length} × $50):</span> <span>$${locationTotal}</span>`;
+                breakdown.appendChild(locDiv);
+            }
+
+            if (selectedActivities.length > 0) {
+                selectedActivities.forEach(act => {
+                    const actDiv = document.createElement('div');
+                    actDiv.innerHTML = `<span>${act.value.charAt(0).toUpperCase() + act.value.slice(1)}:</span> <span>$${act.price}</span>`;
+                    breakdown.appendChild(actDiv);
+                });
+            }
+
+            if (total === 0) {
+                breakdown.innerHTML = '<div>Select locations to see pricing</div>';
+            }
+        }
+
+        // Add event listeners for price calculation
+        document.querySelectorAll('input[name="locations"], input[name="activities"]').forEach(input => {
+            input.addEventListener('change', calculatePrice);
+        });
+
+        document.getElementById('travelers').addEventListener('input', calculatePrice);
+
+        // Form submission
+        document.getElementById('customTourForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = {
+                locations: Array.from(document.querySelectorAll('input[name="locations"]:checked')).map(cb => ({
+                    value: cb.value,
+                    name: locations.find(l => l.value === cb.value)?.name || cb.value
+                })),
+                activities: Array.from(document.querySelectorAll('input[name="activities"]:checked')).map(cb => ({
+                    value: cb.value,
+                    price: parseInt(cb.dataset.price)
+                })),
+                travelers: parseInt(document.getElementById('travelers').value),
+                date: document.getElementById('tourDate').value,
+                startTime: document.getElementById('startTime').value,
+                duration: parseInt(document.getElementById('duration').value),
+                price: {
+                    locations: Array.from(document.querySelectorAll('input[name="locations"]:checked'))
+                        .reduce((sum, cb) => sum + parseInt(cb.dataset.price), 0),
+                    activities: Array.from(document.querySelectorAll('input[name="activities"]:checked'))
+                        .reduce((sum, cb) => sum + parseInt(cb.dataset.price), 0),
+                    total: parseInt(document.getElementById('totalPrice').textContent.replace('$', ''))
+                }
+            };
+
+            // Validate
+            if (formData.locations.length < 4 || formData.locations.length > 5) {
+                alert('Please select 4-5 locations for your custom tour.');
+                return;
+            }
+
+            if (!formData.date || !formData.startTime) {
+                alert('Please select a date and start time for your tour.');
+                return;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('customTourData', JSON.stringify(formData));
+
+            // Redirect to summary page
+            window.location.href = '/custom/summary';
+        });
+
+        // Initial price calculation
+        calculatePrice();
+    </script>
+</body>
+</html>
+

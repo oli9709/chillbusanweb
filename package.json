@@ -7,7 +7,11 @@
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --ci --coverage"
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --ci --coverage",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio"
   },
   "repository": {
     "type": "git",
@@ -21,24 +25,31 @@
   },
   "homepage": "https://github.com/oli9709/chillbusanweb#readme",
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0",
+    "@prisma/client": "^6.19.0",
     "@sentry/node": "^7.91.0",
+    "@supabase/supabase-js": "^2.39.0",
     "nodemailer": "^7.0.10",
     "pdfkit": "^0.17.2",
+    "prisma": "^6.19.0",
     "stripe": "^20.0.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
-    "@jest/globals": "^29.7.0"
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0"
   },
   "jest": {
     "testEnvironment": "node",
     "transform": {},
-    "extensionsToTreatAsEsm": [".js"],
+    "extensionsToTreatAsEsm": [
+      ".js"
+    ],
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1"
     },
-    "testMatch": ["**/__tests__/**/*.test.js", "**/?(*.)+(spec|test).js"],
+    "testMatch": [
+      "**/__tests__/**/*.test.js",
+      "**/?(*.)+(spec|test).js"
+    ],
     "collectCoverageFrom": [
       "api/**/*.js",
       "utils/**/*.js"

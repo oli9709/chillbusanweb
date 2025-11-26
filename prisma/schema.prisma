@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Custom Tour Request Model
+// Stores custom tour booking requests with itinerary, pricing, and status
+model CustomTourRequest {
+  id            String                @id @default(uuid())
+  userId        String?               // Optional: links to user if authenticated
+  itinerary     Json                  // JSON array of chosen locations, activities, times
+  travelers     Int                   // Number of travelers
+  startTime     DateTime              // Tour start time
+  durationHours Int                   // Tour duration in hours
+  basePrice     Int                   // Base price in cents (or smallest currency unit)
+  addons        Json?                 // JSON array of add-ons (lunch, services, etc.)
+  totalPrice    Int                   // Total price including add-ons
+  status        CustomTourStatus      @default(pending)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  // Relations
+  payments      CustomTourPayment[]
+
+  // Indexes for better query performance
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("custom_tour_requests")
+}
+
+// Custom Tour Payment Model
+// Tracks payment transactions for custom tours via Stripe
+model CustomTourPayment {
+  id                   String              @id @default(uuid())
+  customTourId         String              // Foreign key to CustomTourRequest
+  stripePaymentIntentId String?             // Stripe payment intent ID
+  amount               Int                 // Payment amount in cents
+  paymentStatus        PaymentStatus       @default(succeeded)
+  createdAt            DateTime            @default(now())
+
+  // Relations
+  customTour            CustomTourRequest  @relation(fields: [customTourId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([customTourId])
+  @@index([stripePaymentIntentId])
+  @@index([paymentStatus])
+  @@map("custom_tour_payments")
+}
+
+// Enums
+enum CustomTourStatus {
+  pending
+  approved
+  rejected
+  paid
+  cancelled
+
+  @@map("custom_tour_status")
+}
+
+enum PaymentStatus {
+  succeeded
+  failed
+  refunded
+
+  @@map("payment_status")
+}
