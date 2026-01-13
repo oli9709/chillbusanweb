@@ -7,6 +7,7 @@
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { withSentry, logError } from '../../../utils/sentry.js';
+import { env } from '../../../utils/env.js';
 
 async function handler(req, res) {
     // Set CORS headers
@@ -30,28 +31,10 @@ async function handler(req, res) {
 
     try {
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Initialize Stripe
-        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-        if (!stripeSecretKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Stripe credentials missing'
-            });
-        }
-
-        const stripe = new Stripe(stripeSecretKey);
+        const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
         // Get tour ID from URL (Vercel dynamic route)
         // URL format: /api/custom/[id]/payment-intent

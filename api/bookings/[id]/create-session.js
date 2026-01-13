@@ -29,17 +29,7 @@ export default async function handler(req, res) {
 
     try {
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Get booking ID from URL parameter
         const bookingId = req.query.id;
@@ -98,17 +88,7 @@ export default async function handler(req, res) {
         }
 
         // Initialize Stripe
-        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-
-        if (!stripeSecretKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Stripe not configured'
-            });
-        }
-
-        const stripe = new Stripe(stripeSecretKey);
+        const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
         // Calculate line items with discount applied (10% for pay_now)
         const lineItems = (items || []).map(item => {
@@ -133,8 +113,8 @@ export default async function handler(req, res) {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: `${baseUrl}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${baseUrl}/dashboard`,
+            success_url: `${env.BASE_URL}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${env.BASE_URL}/dashboard`,
             metadata: {
                 booking_id: bookingId,
                 user_id: booking.user_id,

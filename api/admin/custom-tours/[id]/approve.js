@@ -7,6 +7,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { withSentry, logError } from '../../../../utils/sentry.js';
 import { sendCustomTourEmail } from '../../../../utils/customTourEmailTemplates.js';
+import { env } from '../../../../utils/env.js';
 
 async function handler(req, res) {
     // Set CORS headers
@@ -31,9 +32,8 @@ async function handler(req, res) {
     try {
         // Check admin authentication
         const adminEmail = req.query.email || req.headers['x-user-email'];
-        const expectedAdminEmail = process.env.ADMIN_EMAIL || 'chilltours.official@gmail.com';
 
-        if (!adminEmail || adminEmail !== expectedAdminEmail) {
+        if (!adminEmail || adminEmail !== env.SUPPORT_EMAIL) {
             return res.status(403).json({
                 success: false,
                 message: 'Unauthorized: Admin access required'
@@ -41,17 +41,7 @@ async function handler(req, res) {
         }
 
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Get tour ID from URL
         const tourId = req.query.id;

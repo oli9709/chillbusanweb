@@ -193,21 +193,110 @@ async function signIn(email, password) {
 
 /**
  * Sign out current user
+ * Clears session, cookies, and storage
+ * Shows toast notification
  * @returns {Promise<Object>} Signout result
  */
 async function signOut() {
+    // CRITICAL: Set global flag to prevent auth listeners from rehydrating session
+    if (typeof window !== 'undefined') {
+        window._isLoggingOut = true;
+    }
+    
+    // Show toast notification
+    if (typeof window !== 'undefined' && window.showToast) {
+        window.showToast("You've been logged out", 'info', 2000);
+    }
+    
     const supabase = getSupabase();
     if (!supabase) {
-        throw new Error('Supabase client not initialized');
+        // Even if Supabase isn't initialized, clear storage and redirect
+        clearAuthStorage();
+        // Use replace to prevent back button from going back to dashboard
+        setTimeout(() => {
+            window.location.replace('/login.html');
+        }, 500);
+        return { error: null };
     }
 
     try {
+        // Sign out from Supabase
         const { error } = await supabase.auth.signOut();
-        if (error) throw error;
+        
+        // Clear all auth-related storage regardless of error
+        clearAuthStorage();
+        
+        if (error) {
+            console.error('Signout error:', error);
+        }
+        
+        // Redirect to login - use replace to prevent back button
+        // Small delay to show toast
+        setTimeout(() => {
+            window.location.replace('/login.html');
+        }, 500);
+        
         return { error: null };
     } catch (error) {
         console.error('Signout error:', error);
+        // Clear storage and redirect even on error
+        clearAuthStorage();
+        // Use replace to prevent back button
+        setTimeout(() => {
+            window.location.replace('/login.html');
+        }, 500);
         return { error };
+    }
+}
+
+/**
+ * Clear all authentication-related storage
+ */
+function clearAuthStorage() {
+    try {
+        // Clear localStorage
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (
+                key.includes('supabase') || 
+                key.includes('auth') || 
+                key.includes('session') ||
+                key.includes('user')
+            )) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Clear sessionStorage
+        const sessionKeysToRemove = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const key = sessionStorage.key(i);
+            if (key && (
+                key.includes('supabase') || 
+                key.includes('auth') || 
+                key.includes('session') ||
+                key.includes('user')
+            )) {
+                sessionKeysToRemove.push(key);
+            }
+        }
+        sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
+        
+        // Clear Supabase cookies (if any)
+        document.cookie.split(";").forEach(cookie => {
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+            if (name.includes('supabase') || name.includes('auth') || name.includes('sb-')) {
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+                document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+            }
+        });
+        
+        console.log('Auth storage cleared');
+    } catch (error) {
+        console.error('Error clearing auth storage:', error);
     }
 }
 
@@ -395,7 +484,8 @@ if (typeof window !== 'undefined') {
         getCurrentUser,
         resetPassword,
         getUserDiscountStatus,
-        consumeDiscount
+        consumeDiscount,
+        clearAuthStorage
     };
 }
 

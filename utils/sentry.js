@@ -4,11 +4,12 @@
  */
 
 import * as Sentry from '@sentry/node';
+import { env } from './env.js';
 
 // Initialize Sentry if DSN is provided
-if (process.env.SENTRY_DSN) {
+if (env.SENTRY_DSN) {
     Sentry.init({
-        dsn: process.env.SENTRY_DSN,
+        dsn: env.SENTRY_DSN,
         environment: process.env.NODE_ENV || 'development',
         tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
         debug: process.env.NODE_ENV === 'development',
@@ -36,7 +37,7 @@ export function withSentry(handler) {
     return async (req, res) => {
         try {
             // Set up Sentry context
-            if (process.env.SENTRY_DSN) {
+            if (env.SENTRY_DSN) {
                 Sentry.setContext('request', {
                     method: req.method,
                     url: req.url,
@@ -51,7 +52,7 @@ export function withSentry(handler) {
             return await handler(req, res);
         } catch (error) {
             // Capture exception in Sentry
-            if (process.env.SENTRY_DSN) {
+            if (env.SENTRY_DSN) {
                 Sentry.captureException(error, {
                     tags: {
                         handler: handler.name || 'unknown',
@@ -77,14 +78,15 @@ export function withSentry(handler) {
  * @param {Object} context - Additional context
  */
 export function logError(error, context = {}) {
-    if (process.env.SENTRY_DSN) {
+    if (env.SENTRY_DSN) {
         Sentry.captureException(error, {
             tags: context.tags || {},
             extra: context.extra || {},
             level: context.level || 'error'
         });
     }
-    console.error('Error logged to Sentry:', error, context);
+    // Do not log error details that might contain sensitive info
+    console.error('Error logged to Sentry');
 }
 
 /**
@@ -93,14 +95,15 @@ export function logError(error, context = {}) {
  * @param {Object} context - Additional context
  */
 export function logMessage(message, context = {}) {
-    if (process.env.SENTRY_DSN) {
+    if (env.SENTRY_DSN) {
         Sentry.captureMessage(message, {
             level: context.level || 'info',
             tags: context.tags || {},
             extra: context.extra || {}
         });
     }
-    console.log('Message logged to Sentry:', message, context);
+    // Do not log message details that might contain sensitive info
+    console.log('Message logged to Sentry');
 }
 
 export default Sentry;

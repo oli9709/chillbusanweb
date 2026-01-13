@@ -137,6 +137,16 @@
                     <i class="fas fa-user-plus"></i> Sign Up
                 </a>
             </li>
+            <li id="dashboard-nav-item" style="display: none;">
+                <a href="dashboard.html" id="dashboard-link">
+                    <i class="fas fa-user-circle"></i> My Dashboard
+                </a>
+            </li>
+            <li id="logout-nav-item" style="display: none;">
+                <a href="#" id="logout-link" style="color: #ef4444;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
         </ul>
     </nav>
 
@@ -1099,6 +1109,7 @@
     
     <!-- Booking Modal Script -->
     <script src="components/bookingModal.js"></script>
+    <script src="utils/toast.js"></script>
     <script src="main.js"></script>
     <script>
         // Update navigation based on auth status after scripts load
@@ -1113,29 +1124,48 @@
                     const authNavItem = document.getElementById('auth-nav-item');
                     const signupLink = document.getElementById('signup-link');
                     const signupNavItem = document.getElementById('signup-nav-item');
-                    
-                    // Show auth buttons
-                    if (authNavItem) authNavItem.style.display = 'block';
-                    if (signupNavItem) signupNavItem.style.display = 'block';
+                    const dashboardLink = document.getElementById('dashboard-link');
+                    const dashboardNavItem = document.getElementById('dashboard-nav-item');
+                    const logoutLink = document.getElementById('logout-link');
+                    const logoutNavItem = document.getElementById('logout-nav-item');
                     
                     if (user) {
-                        // User is logged in
-                        if (authLink) {
-                            authLink.href = 'dashboard.html';
-                            authLink.innerHTML = '<i class="fas fa-user-circle"></i> Dashboard';
-                        }
+                        // User is logged in - show dashboard and logout
+                        if (authNavItem) authNavItem.style.display = 'none';
                         if (signupNavItem) signupNavItem.style.display = 'none';
+                        if (dashboardNavItem) dashboardNavItem.style.display = 'block';
+                        if (logoutNavItem) logoutNavItem.style.display = 'block';
+                        
+                        // Handle logout click
+                        if (logoutLink) {
+                            logoutLink.addEventListener('click', async (e) => {
+                                e.preventDefault();
+                                
+                                // Prevent double clicks
+                                if (logoutLink.dataset.processing === 'true') return;
+                                logoutLink.dataset.processing = 'true';
+                                
+                                // Disable link
+                                logoutLink.style.pointerEvents = 'none';
+                                logoutLink.style.opacity = '0.6';
+                                
+                                // Call signOut which handles everything
+                                await window.supabaseAuth.signOut();
+                            });
+                        }
                     } else {
-                        // User is not logged in
-                        if (authLink) {
-                            authLink.href = 'login.html';
-                            authLink.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
-                        }
-                        if (signupLink) {
-                            signupLink.href = 'signup.html';
-                            signupLink.innerHTML = '<i class="fas fa-user-plus"></i> Sign Up';
-                        }
+                        // User is not logged in - show sign in and sign up
+                        if (authNavItem) authNavItem.style.display = 'block';
+                        if (signupNavItem) signupNavItem.style.display = 'block';
+                        if (dashboardNavItem) dashboardNavItem.style.display = 'none';
+                        if (logoutNavItem) logoutNavItem.style.display = 'none';
                     }
+                } else {
+                    // Supabase not initialized - show sign in/sign up buttons
+                    const authNavItem = document.getElementById('auth-nav-item');
+                    const signupNavItem = document.getElementById('signup-nav-item');
+                    if (authNavItem) authNavItem.style.display = 'block';
+                    if (signupNavItem) signupNavItem.style.display = 'block';
                 }
             } catch (error) {
                 console.log('Auth check failed:', error);

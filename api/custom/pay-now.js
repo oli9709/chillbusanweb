@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { withSentry, logError } from '../../utils/sentry.js';
 import { sendCustomTourEmail } from '../../utils/customTourEmailTemplates.js';
+import { env } from '../../utils/env.js';
 
 // Server-side price calculation
 function calculatePrice(selectedLocations, addons) {
@@ -56,28 +57,10 @@ async function handler(req, res) {
 
     try {
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Initialize Stripe
-        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-        if (!stripeSecretKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Stripe credentials missing'
-            });
-        }
-
-        const stripe = new Stripe(stripeSecretKey);
+        const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
         // Parse and validate request body
         const {
@@ -242,8 +225,7 @@ async function handler(req, res) {
                 }
             }
             
-            const adminEmail = process.env.ADMIN_EMAIL || 'chilltours.official@gmail.com';
-            await sendCustomTourEmail(adminEmail, 'request_received', tourRequest, userEmail, userName);
+            await sendCustomTourEmail(env.SUPPORT_EMAIL, 'request_received', tourRequest, userEmail, userName);
         } catch (emailError) {
             console.error('Error sending admin email:', emailError);
             // Don't fail the request if email fails

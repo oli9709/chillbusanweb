@@ -5,6 +5,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { env } from '../../utils/env.js';
 
 export default async function handler(req, res) {
     // Set CORS headers
@@ -28,17 +29,7 @@ export default async function handler(req, res) {
 
     try {
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Get request body
         const { bookingId, reason, userId } = req.body;

@@ -5,6 +5,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { env } from '../../../utils/env.js';
 
 export default async function handler(req, res) {
     // Set CORS headers
@@ -28,17 +29,7 @@ export default async function handler(req, res) {
 
     try {
         // Initialize Supabase client with service role key
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Get user ID from URL parameter
         const userId = req.query.id;
@@ -69,9 +60,12 @@ export default async function handler(req, res) {
             });
         }
 
-        // If no bookings, return empty array
+        // If no bookings, return empty array in consistent format
         if (!bookings || bookings.length === 0) {
-            return res.status(200).json([]);
+            return res.status(200).json({
+                success: true,
+                bookings: []
+            });
         }
 
         // Fetch all booking items for these bookings
@@ -117,7 +111,11 @@ export default async function handler(req, res) {
             items: itemsByBookingId[booking.id] || []
         }));
 
-        return res.status(200).json(bookingsWithItems);
+        // Return consistent JSON format
+        return res.status(200).json({
+            success: true,
+            bookings: bookingsWithItems
+        });
 
     } catch (error) {
         console.error('Error fetching user bookings:', error);

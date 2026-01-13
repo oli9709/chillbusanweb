@@ -4,16 +4,17 @@
  */
 
 import nodemailer from 'nodemailer';
+import { env } from './env.js';
 
 // Email transporter configuration
 export const createTransporter = () => {
     return nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: process.env.EMAIL_PORT || 587,
+        host: env.SMTP_HOST,
+        port: parseInt(env.SMTP_PORT, 10),
         secure: false,
         auth: {
-            user: process.env.EMAIL_USER || 'chilltours.official@gmail.com',
-            pass: process.env.EMAIL_PASS || process.env.EMAIL_APP_PASSWORD
+            user: env.SMTP_USER,
+            pass: env.SMTP_PASSWORD
         }
     });
 };
@@ -141,7 +142,7 @@ export function getCustomTourRequestReceivedEmail(tourRequest, userEmail = null,
                         </div>
                     </div>
                     
-                    <a href="${process.env.BASE_URL || 'https://chillbusantours.com'}/admin?tab=custom-tours" class="button">Review in Admin Panel</a>
+                    <a href="${env.BASE_URL}/admin?tab=custom-tours" class="button">Review in Admin Panel</a>
                     
                     <div class="footer">
                         <p>This is an automated notification from Chill Busan Tours.</p>
@@ -242,7 +243,7 @@ export function getCustomTourApprovedEmail(tourRequest, userEmail, userName) {
                     
                     <p><strong>Next Steps:</strong></p>
                     <p>You can now proceed to payment by visiting your dashboard:</p>
-                    <a href="${process.env.BASE_URL || 'https://chillbusantours.com'}/dashboard?tab=custom" class="button">View in Dashboard</a>
+                    <a href="${env.BASE_URL}/dashboard?tab=custom" class="button">View in Dashboard</a>
                     
                     <p>If you have any questions, please don't hesitate to contact us at +82 010-3973-2052</p>
                     
@@ -338,7 +339,7 @@ export function getCustomTourRejectedEmail(tourRequest, userEmail, userName, rea
                         <li>Contact us directly if you have questions</li>
                     </ul>
                     
-                    <a href="${process.env.BASE_URL || 'https://chillbusantours.com'}" class="button">View Our Tours</a>
+                    <a href="${env.BASE_URL}" class="button">View Our Tours</a>
                     
                     <p>If you have any questions, please don't hesitate to reach out to us at +82 010-3973-2052</p>
                     
@@ -460,7 +461,7 @@ export function getCustomTourPaymentReceivedEmail(tourRequest, userEmail, userNa
                     
                     <p>Your custom tour is now confirmed. We look forward to providing you with an amazing experience!</p>
                     <p>You can view your tour details in your dashboard:</p>
-                    <a href="${process.env.BASE_URL || 'https://chillbusantours.com'}/dashboard?tab=custom" class="button">View in Dashboard</a>
+                    <a href="${env.BASE_URL}/dashboard?tab=custom" class="button">View in Dashboard</a>
                     
                     <p>If you have any questions, please contact us at +82 010-3973-2052</p>
                     
@@ -554,7 +555,7 @@ export function getCustomTourCancelledEmail(tourRequest, userEmail, userName, re
                     <p>If you have already made a payment, a refund will be processed within 5-10 business days.</p>
                     
                     <p>We're sorry for any inconvenience. If you'd like to book a different tour, please visit our website:</p>
-                    <a href="${process.env.BASE_URL || 'https://chillbusantours.com'}" class="button">View Our Tours</a>
+                    <a href="${env.BASE_URL}" class="button">View Our Tours</a>
                     
                     <p>If you have any questions or concerns, please contact us at +82 010-3973-2052</p>
                     
@@ -623,7 +624,7 @@ export async function sendCustomTourEmail(to, template, tourRequest, userEmail =
         }
         
         await transporter.sendMail({
-            from: `"Chill Busan Tours" <${process.env.EMAIL_USER || 'chilltours.official@gmail.com'}>`,
+            from: `"Chill Busan Tours" <${env.SMTP_USER}>`,
             to: to,
             subject: emailContent.subject,
             text: emailContent.text,

@@ -7,6 +7,7 @@
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { withSentry, logError } from '../../utils/sentry.js';
+import { env } from '../../utils/env.js';
 
 async function handler(req, res) {
     // Set CORS headers
@@ -30,17 +31,7 @@ async function handler(req, res) {
 
     try {
         // Initialize Supabase client with service role key
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Parse request body
         const {
@@ -446,19 +437,7 @@ async function handler(req, res) {
 
         // 7. Handle Stripe Checkout Session for pay_now
         if (payment_option === 'pay_now') {
-            const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-            const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-
-            if (!stripeSecretKey) {
-                console.warn('STRIPE_SECRET_KEY not set, skipping Stripe session creation');
-                return res.status(200).json({
-                    success: true,
-                    bookingId: bookingId,
-                    message: 'Booking created but Stripe not configured'
-                });
-            }
-
-            const stripe = new Stripe(stripeSecretKey);
+            const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
             // Create Stripe Checkout Session
             try {
@@ -486,8 +465,8 @@ async function handler(req, res) {
                     payment_method_types: ['card'],
                     line_items: lineItems,
                     mode: 'payment',
-                    success_url: `${baseUrl}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-                    cancel_url: `${baseUrl}/booking-cancel`,
+                    success_url: `${env.BASE_URL}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
+                    cancel_url: `${env.BASE_URL}/booking-cancel`,
                     metadata: {
                         booking_id: bookingId,
                         user_id: userId,

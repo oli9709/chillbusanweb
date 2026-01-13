@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 import { withSentry, logError, logMessage } from '../../utils/sentry.js';
 import { sendCustomTourEmail } from '../../utils/customTourEmailTemplates.js';
+import { env } from '../../utils/env.js';
 
 // Helper to get raw body for Stripe signature verification
 // In Vercel, we need to handle raw body differently
@@ -32,18 +33,7 @@ async function handler(req, res) {
 
     try {
         // Initialize Stripe
-        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-        const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-        if (!stripeSecretKey || !webhookSecret) {
-            console.error('Missing Stripe configuration');
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Stripe credentials missing'
-            });
-        }
-
-        const stripe = new Stripe(stripeSecretKey);
+        const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
         // Get raw body for signature verification
         // In Vercel, we need to read the raw body stream
@@ -81,7 +71,7 @@ async function handler(req, res) {
             event = stripe.webhooks.constructEvent(
                 rawBody,
                 signature,
-                webhookSecret
+                env.STRIPE_WEBHOOK_SECRET
             );
         } catch (err) {
             console.error('Webhook signature verification failed:', err.message);
@@ -92,18 +82,7 @@ async function handler(req, res) {
         }
 
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            console.error('Missing Supabase configuration');
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Log event to stripe_events table
         const eventData = {
@@ -278,8 +257,7 @@ async function handler(req, res) {
                 }
 
                 // Send notification email to admin
-                const adminEmail = process.env.ADMIN_EMAIL || 'chilltours.official@gmail.com';
-                await sendCustomTourEmail(adminEmail, 'payment_received', customTour, userEmail, userName, { paymentIntentId: paymentIntent });
+                await sendCustomTourEmail(env.SUPPORT_EMAIL, 'payment_received', customTour, userEmail, userName, { paymentIntentId: paymentIntent });
                 console.log('Custom tour payment notification email sent to admin');
 
             } catch (emailError) {
@@ -592,7 +570,7 @@ Chill Busan Tours
                 // Send email to customer if email available
                 if (userEmail) {
                     await transporter.sendMail({
-                        from: `"Chill Busan Tours" <${process.env.EMAIL_USER || 'chilltours.official@gmail.com'}>`,
+                        from: `"Chill Busan Tours" <${env.SMTP_USER}>`,
                         to: userEmail,
                         subject: emailSubject,
                         text: emailText,

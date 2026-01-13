@@ -140,17 +140,44 @@ async function initAuth() {
 function updateAuthUI(user) {
     const authLink = document.getElementById('auth-link');
     const authNavItem = document.getElementById('auth-nav-item');
+    const signupLink = document.getElementById('signup-link');
+    const signupNavItem = document.getElementById('signup-nav-item');
+    const dashboardLink = document.getElementById('dashboard-link');
+    const dashboardNavItem = document.getElementById('dashboard-nav-item');
+    const logoutLink = document.getElementById('logout-link');
+    const logoutNavItem = document.getElementById('logout-nav-item');
     
-    if (authLink && authNavItem) {
-        if (user) {
-            authLink.href = 'dashboard.html';
-            authLink.textContent = 'Dashboard';
-            authLink.innerHTML = '<i class="fas fa-user-circle"></i> Dashboard';
-        } else {
-            authLink.href = 'login.html';
-            authLink.textContent = 'Sign In';
-            authLink.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+    if (user) {
+        // User is logged in - show dashboard and logout
+        if (authNavItem) authNavItem.style.display = 'none';
+        if (signupNavItem) signupNavItem.style.display = 'none';
+        if (dashboardNavItem) dashboardNavItem.style.display = 'block';
+        if (logoutNavItem) logoutNavItem.style.display = 'block';
+        
+        // Setup logout handler if not already set
+        if (logoutLink && !logoutLink.dataset.handlerSet) {
+            logoutLink.dataset.handlerSet = 'true';
+            logoutLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                
+                // Prevent double clicks
+                if (logoutLink.dataset.processing === 'true') return;
+                logoutLink.dataset.processing = 'true';
+                
+                // Disable link
+                logoutLink.style.pointerEvents = 'none';
+                logoutLink.style.opacity = '0.6';
+                
+                // Call signOut which handles everything
+                await window.supabaseAuth.signOut();
+            });
         }
+    } else {
+        // User is not logged in - show sign in and sign up
+        if (authNavItem) authNavItem.style.display = 'block';
+        if (signupNavItem) signupNavItem.style.display = 'block';
+        if (dashboardNavItem) dashboardNavItem.style.display = 'none';
+        if (logoutNavItem) logoutNavItem.style.display = 'none';
     }
 }
 
@@ -191,18 +218,39 @@ if (typeof window !== 'undefined') {
         await initAuth();
         
         // Listen for auth state changes (Supabase)
+        // CRITICAL: Only listen for SIGNED_IN, never rehydrate after SIGNED_OUT
         if (typeof window.supabaseAuth !== 'undefined' && window.supabaseAuth.getSupabase) {
             const supabase = window.supabaseAuth.getSupabase();
             if (supabase && supabase.auth) {
+                let isLoggingOut = false; // Flag to prevent rehydration after logout
+                
                 supabase.auth.onAuthStateChange((event, session) => {
-                    if (event === 'SIGNED_IN') {
-                        currentUser = session?.user || null;
+                    // If we're on a logout path, ignore all events
+                    if (isLoggingOut) {
+                        return;
+                    }
+                    
+                    if (event === 'SIGNED_IN' && session?.user) {
+                        currentUser = session.user;
                         updateAuthUI(currentUser);
                     } else if (event === 'SIGNED_OUT') {
+                        isLoggingOut = true; // Set flag to prevent rehydration
                         currentUser = null;
                         updateAuthUI(null);
+                        // Don't redirect here - let signOut() handle it
+                    } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+                        // Only update if we're not logging out
+                        if (!isLoggingOut) {
+                            currentUser = session.user;
+                            updateAuthUI(currentUser);
+                        }
                     }
                 });
+                
+                // Expose logout flag setter for signOut() to use
+                window._setLoggingOut = () => {
+                    isLoggingOut = true;
+                };
             }
         }
     });
@@ -571,7 +619,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Always fetch from the static JSON file
             const res = await fetch('data/stories.json', { cache: 'no-cache' });
             if (!res.ok) throw new Error('Failed to load stories');
-            const stories = await res.json();
+            let stories = await res.json();
+
+            // Check if we're on the main page (not stories.html)
+            const isMainPage = !window.location.pathname.includes('stories.html');
+            
+            // Sort stories by date (newest first) - do this before filtering
+            stories.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateB - dateA; // Descending order (newest first)
+            });
+
+            // On main page, show only the latest 3 stories
+            if (isMainPage) {
+                stories = stories.slice(0, 3);
+            }
 
             grid.innerHTML = '';
             stories.forEach(story => {

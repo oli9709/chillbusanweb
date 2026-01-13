@@ -477,67 +477,104 @@
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="src/utils/supabase.js"></script>
+    <script src="utils/authGuard.js"></script>
+    <script src="utils/toast.js"></script>
     <script>
+        // Initialize toast
+        initToast();
 
         const logoutBtn = document.getElementById('logout-btn');
-        
-        // Listen for auth state changes and handle session expiration
-        if (window.supabaseAuth && window.supabaseAuth.getSupabase) {
-            const supabase = window.supabaseAuth.getSupabase();
-            if (supabase && supabase.auth) {
-                supabase.auth.onAuthStateChange((event, session) => {
-                    if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
-                        if (!session || !session.user) {
-                            window.location.href = 'login.html?expired=true';
-                        }
-                    }
-                });
-            }
-        }
         const bonusStatusDiv = document.getElementById('bonus-status');
         const bookingsContainer = document.getElementById('bookings-container');
 
-        // Check authentication with session expiration handling
+        // AUTH GUARD: Check session before any API calls
+        let currentSession = null;
+        let currentUser = null;
+
+        // AUTH GUARD: Check session before any API calls
         async function checkAuth() {
             try {
-                const { user, error } = await window.supabaseAuth.getCurrentUser();
-                
-                if (error) {
-                    // Check if it's a session expiration error
-                    if (error.message && (error.message.includes('JWT') || error.message.includes('expired') || error.message.includes('invalid'))) {
-                        window.location.href = 'login.html?expired=true';
-                        return null;
-                    }
+                const supabase = window.supabaseAuth?.getSupabase();
+                if (!supabase) {
+                    console.error('Supabase client not initialized');
+                    window.location.replace('/login.html');
+                    return null;
                 }
+
+                // Get session first (most reliable)
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
                 
-                if (!user) {
-                    window.location.href = 'login.html';
+                if (sessionError) {
+                    console.error('Session error:', sessionError);
+                    window.location.replace('/login.html?expired=true');
                     return null;
                 }
                 
-                // Verify session is still valid
-                const supabase = window.supabaseAuth.getSupabase();
-                if (supabase) {
-                    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                    if (sessionError || !session || !session.user) {
-                        window.location.href = 'login.html?expired=true';
-                        return null;
-                    }
+                if (!session || !session.user) {
+                    console.log('No active session');
+                    window.location.replace('/login.html');
+                    return null;
+                }
+
+                // Store session and user for later use
+                currentSession = session;
+                currentUser = session.user;
+                
+                // Listen for auth state changes
+                // CRITICAL: Only set up listener once, prevent rehydration after logout
+                if (!window._authListenerSet) {
+                    window._authListenerSet = true;
+                    supabase.auth.onAuthStateChange((event, newSession) => {
+                        // CRITICAL: If logout flag is set, ignore all events
+                        if (window._isLoggingOut) {
+                            return;
+                        }
+                        
+                        // If SIGNED_OUT, immediately redirect and don't process any other events
+                        if (event === 'SIGNED_OUT') {
+                            window._isLoggingOut = true; // Set flag to prevent rehydration
+                            currentSession = null;
+                            currentUser = null;
+                            // Use replace to prevent back button
+                            window.location.replace('/login.html?expired=true');
+                            return;
+                        }
+                        
+                        // Only update if we have a valid session and not logging out
+                        if (event === 'TOKEN_REFRESHED' && newSession && newSession.user && !window._isLoggingOut) {
+                            currentSession = newSession;
+                            currentUser = newSession.user;
+                        } else if (!newSession || !newSession.user) {
+                            // Session expired or invalid
+                            if (!window._isLoggingOut) {
+                                currentSession = null;
+                                currentUser = null;
+                                window.location.replace('/login.html?expired=true');
+                            }
+                        }
+                    });
                 }
                 
-                return user;
+                return session.user;
             } catch (error) {
                 console.error('Auth check error:', error);
-                window.location.href = 'login.html?expired=true';
+                window.location.replace('/login.html?expired=true');
                 return null;
             }
         }
 
         // Load welcome bonus status with timeout protection
         async function loadBonusStatus(userId) {
+            // Verify user is still authenticated
+            if (!currentUser || currentUser.id !== userId) {
+                const user = await checkAuth();
+                if (!user) return; // Already redirected
+                userId = user.id;
+            }
+            
             // Set timeout to prevent infinite loading
             const timeout = setTimeout(() => {
-                if (bonusStatusDiv.querySelector('.fa-spinner')) {
+                if (bonusStatusDiv && bonusStatusDiv.querySelector('.fa-spinner')) {
                     bonusStatusDiv.innerHTML = `
                         <i class="fas fa-exclamation-triangle"></i>
                         <div>
@@ -551,6 +588,10 @@
             try {
                 const status = await window.supabaseAuth.getUserDiscountStatus(userId);
                 clearTimeout(timeout);
+                
+                if (!status) {
+                    throw new Error('No status returned');
+                }
                 
                 const { hasDiscount, discountExpiry, error } = status;
                 
@@ -637,15 +678,45 @@
 
         // Load user bookings with improved error handling
         async function loadBookings(userId) {
+            // Verify user is still authenticated
+            if (!currentUser || currentUser.id !== userId) {
+                const user = await checkAuth();
+                if (!user) return; // Already redirected
+                userId = user.id;
+            }
+            
             try {
                 // Use new API endpoint
                 const response = await fetch(`/api/users/${userId}/bookings`);
                 
                 if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                        window.location.replace('/login.html?expired=true');
+                        return;
+                    }
                     throw new Error(`Server error: ${response.status}`);
                 }
                 
-                const bookings = await response.json();
+                // Ensure response is valid JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Invalid response format from server');
+                }
+                
+                const result = await response.json();
+                
+                // Handle both old format (array) and new format (object with bookings array)
+                let bookings = [];
+                if (Array.isArray(result)) {
+                    bookings = result;
+                } else if (result && result.bookings && Array.isArray(result.bookings)) {
+                    bookings = result.bookings;
+                } else if (result && result.success && Array.isArray(result.data)) {
+                    bookings = result.data;
+                } else {
+                    console.error('Invalid bookings format:', result);
+                    throw new Error('Invalid bookings data format');
+                }
 
                 // Handle empty array
                 if (!bookings || bookings.length === 0) {
@@ -675,7 +746,7 @@
                 } else if (error.message && (error.message.includes('401') || error.message.includes('403'))) {
                     errorMessage = 'Your session has expired. We\'ll redirect you to sign in...';
                     showRetry = false;
-                    setTimeout(() => window.location.href = 'login.html?expired=true', 2000);
+                    setTimeout(() => window.location.replace('/login.html?expired=true'), 2000);
                 } else if (error.message && error.message.includes('500')) {
                     errorMessage = 'Our servers are having a moment. Please try again in a few seconds.';
                 }
@@ -924,10 +995,35 @@
             window.open(`/api/bookings/${bookingId}/download-pdf`, '_blank');
         }
 
-        // Logout
-        logoutBtn.addEventListener('click', async () => {
-            await window.supabaseAuth.signOut();
-            window.location.href = 'login.html';
+        // Logout - Fixed implementation with toast
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Prevent double clicks
+            if (logoutBtn.dataset.processing === 'true') return;
+            logoutBtn.dataset.processing = 'true';
+            
+            // Set logout flag immediately to prevent any race conditions
+            window._isLoggingOut = true;
+            
+            try {
+                // Disable button to prevent double-clicks
+                logoutBtn.disabled = true;
+                logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing out...';
+                
+                // Call signOut which handles everything (clears storage, shows toast, redirects)
+                await window.supabaseAuth.signOut();
+                
+                // signOut() already redirects via window.location.replace() after showing toast
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Clear storage and redirect anyway
+                if (window.supabaseAuth && window.supabaseAuth.clearAuthStorage) {
+                    window.supabaseAuth.clearAuthStorage();
+                }
+                window.location.replace('/login.html');
+            }
         });
 
         // Tab switching
@@ -971,7 +1067,20 @@
                     throw new Error(`Server error: ${response.status}`);
                 }
 
-                const customTours = await response.json();
+                const result = await response.json();
+                
+                // Handle both old format (array) and new format (object with customTours array)
+                let customTours = [];
+                if (Array.isArray(result)) {
+                    customTours = result;
+                } else if (result && result.customTours && Array.isArray(result.customTours)) {
+                    customTours = result.customTours;
+                } else if (result && result.success && Array.isArray(result.data)) {
+                    customTours = result.data;
+                } else {
+                    console.error('Invalid custom tours format:', result);
+                    throw new Error('Invalid custom tours data format');
+                }
 
                 if (!customTours || customTours.length === 0) {
                     container.innerHTML = `
@@ -1217,19 +1326,68 @@
             // TODO: Implement itinerary modal or page
         }
 
-        // Initialize dashboard
+        // Initialize dashboard - AUTH GUARD FIRST
+        // CRITICAL: Prevent race conditions by ensuring DOM is ready
         (async () => {
+            // Wait for DOM to be fully ready
+            if (document.readyState === 'loading') {
+                await new Promise(resolve => {
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', resolve);
+                    } else {
+                        resolve();
+                    }
+                });
+            }
+            
+            // CRITICAL: Check auth BEFORE any API calls or DOM manipulation
             const user = await checkAuth();
-            if (user) {
-                window.currentUser = user;
-                await loadBonusStatus(user.id);
-                await loadBookings(user.id);
+            
+            if (!user) {
+                // Already redirected by checkAuth, but ensure we don't continue
+                // Hide any content that might have loaded
+                document.body.style.display = 'none';
+                return;
+            }
+            
+            // Verify we're not in logout state
+            if (window._isLoggingOut) {
+                return;
+            }
+            
+            // Store user globally
+            window.currentUser = user;
+            currentUser = user;
+            
+            // Now safe to load data - but verify session still valid
+            try {
+                // Double-check session before making API calls
+                const supabase = window.supabaseAuth?.getSupabase();
+                if (supabase) {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session || !session.user || session.user.id !== user.id || window._isLoggingOut) {
+                        window.location.replace('/login.html');
+                        return;
+                    }
+                }
+                
+                // Load data in parallel
+                await Promise.all([
+                    loadBonusStatus(user.id),
+                    loadBookings(user.id)
+                ]);
 
                 // Check for tab parameter in URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const tab = urlParams.get('tab');
                 if (tab === 'custom') {
                     switchTab('custom');
+                }
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+                // If error is auth-related, redirect
+                if (error.message && (error.message.includes('auth') || error.message.includes('session'))) {
+                    window.location.replace('/login.html');
                 }
             }
         })();

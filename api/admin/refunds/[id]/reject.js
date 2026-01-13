@@ -5,6 +5,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { env } from '../../../utils/env.js';
 
 export default async function handler(req, res) {
     // Set CORS headers
@@ -28,7 +29,7 @@ export default async function handler(req, res) {
 
     try {
         // Check admin authorization
-        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminEmail = env.SUPPORT_EMAIL;
         const userEmail = req.headers['x-user-email'] || req.body?.email;
 
         if (!adminEmail || userEmail !== adminEmail) {
@@ -39,17 +40,7 @@ export default async function handler(req, res) {
         }
 
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Get refund ID from URL
         const refundId = req.query.id;

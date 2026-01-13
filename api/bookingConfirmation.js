@@ -4,20 +4,7 @@
  */
 
 import { generateTourPDF } from '../utils/generateTourPDF.js';
-import nodemailer from 'nodemailer';
-
-// Email configuration
-const createTransporter = () => {
-    return nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: process.env.EMAIL_PORT || 587,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL_USER || 'chilltours.official@gmail.com',
-            pass: process.env.EMAIL_PASS || process.env.EMAIL_APP_PASSWORD
-        }
-    });
-};
+import { sendBookingConfirmationEmail } from '../utils/sendEmail.js';
 
 export default async function handler(req, res) {
     // Set CORS headers
@@ -69,9 +56,6 @@ export default async function handler(req, res) {
         const { buffer, fileName } = await generateTourPDF(bookingDetails);
         console.log('PDF generated successfully:', fileName);
 
-        // Create email transporter
-        const transporter = createTransporter();
-
         // Email content
         const emailSubject = `Chill Busan Tours - Booking Confirmation #${bookingDetails.bookingId}`;
         const emailHtml = `
@@ -118,10 +102,10 @@ Best regards,
 Chill Busan Tours
         `;
 
-        // Send email to customer
-        const customerMailOptions = {
-            from: `"Chill Busan Tours" <${process.env.EMAIL_USER || 'chilltours.official@gmail.com'}>`,
-            to: bookingDetails.customerEmail,
+        // Send emails using unified helper
+        console.log('Sending confirmation emails...');
+        const emailResults = await sendBookingConfirmationEmail({
+            customerEmail: bookingDetails.customerEmail,
             subject: emailSubject,
             text: emailText,
             html: emailHtml,
@@ -131,36 +115,15 @@ Chill Busan Tours
                     content: buffer,
                     contentType: 'application/pdf'
                 }
-            ]
-        };
+            ],
+            adminSubject: `New Booking: ${bookingDetails.bookingId} - ${bookingDetails.customerName}`
+        });
 
-        // Send email to company
-        const companyMailOptions = {
-            from: `"Chill Busan Tours" <${process.env.EMAIL_USER || 'chilltours.official@gmail.com'}>`,
-            to: 'chilltours.official@gmail.com',
-            subject: `New Booking: ${bookingDetails.bookingId} - ${bookingDetails.customerName}`,
-            text: `New booking received:\n\n${JSON.stringify(bookingDetails, null, 2)}`,
-            html: `
-                <h2>New Booking Received</h2>
-                <pre>${JSON.stringify(bookingDetails, null, 2)}</pre>
-            `,
-            attachments: [
-                {
-                    filename: fileName,
-                    content: buffer,
-                    contentType: 'application/pdf'
-                }
-            ]
-        };
-
-        // Send both emails
-        console.log('Sending confirmation email to customer...');
-        await transporter.sendMail(customerMailOptions);
-        console.log('Customer email sent successfully');
-
-        console.log('Sending notification email to company...');
-        await transporter.sendMail(companyMailOptions);
-        console.log('Company email sent successfully');
+        if (emailResults.errors.length > 0) {
+            console.warn('Some emails failed to send:', emailResults.errors);
+        } else {
+            console.log('All emails sent successfully');
+        }
 
         return res.status(200).json({
             success: true,

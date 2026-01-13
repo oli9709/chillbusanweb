@@ -233,74 +233,69 @@ async function handleBookingSubmit(e) {
     submitLoading.style.display = 'block';
     
     try {
-        // Collect form data
-        const formData = {
-            user: {
-                name: document.getElementById('bookingName').value,
-                email: document.getElementById('bookingEmail').value,
-                phone: document.getElementById('bookingPhone').value
-            },
-            items: [],
-            payment_option: document.querySelector('input[name="paymentOption"]:checked').value,
-            date: document.getElementById('bookingDate').value,
-            pickup_location: document.getElementById('bookingPickup').value
-        };
+        // Collect form data - simplified schema
+        const customerName = document.getElementById('bookingName').value.trim();
+        const customerEmail = document.getElementById('bookingEmail').value.trim();
+        const tourType = document.getElementById('bookingTourName').value || 'Tour';
+        const tourDate = document.getElementById('bookingDate').value;
         
-        // Add tour as main item
-        const tourPrice = parseInt(document.getElementById('bookingTourPrice').value) || 0;
+        // Calculate total price
+        const tourPrice = parseFloat(document.getElementById('bookingTourPrice').value) || 0;
         const guests = parseInt(document.getElementById('bookingGuests').value) || 1;
+        let totalPrice = tourPrice * guests;
         
-        formData.items.push({
-            type: 'tour',
-            id: document.getElementById('bookingTourId').value || null,
-            name: document.getElementById('bookingTourName').value || 'Tour',
-            unit_price_krw: tourPrice,
-            quantity: guests
-        });
-        
-        // Add selected add-ons
+        // Add add-ons to price
         document.querySelectorAll('.addon-quantity input').forEach(input => {
             const quantity = parseInt(input.value) || 0;
             if (quantity > 0) {
-                const addonId = input.id.replace('addon-', '');
-                const addon = [...addons.services, ...addons.products].find(a => a.id === addonId);
-                if (addon) {
-                    formData.items.push({
-                        type: addon.type,
-                        id: addon.id,
-                        name: addon.name,
-                        unit_price_krw: addon.price_krw,
-                        quantity: quantity
-                    });
-                }
+                const price = parseFloat(input.dataset.price) || 0;
+                totalPrice += price * quantity;
             }
         });
         
-        // Call API
-        const response = await fetch('/api/bookings/create', {
+        // Apply discount if pay_now
+        const paymentOption = document.querySelector('input[name="paymentOption"]:checked').value;
+        if (paymentOption === 'pay_now') {
+            totalPrice = Math.round(totalPrice * 0.9); // 10% discount
+        }
+        
+        // Prepare booking data for new API
+        const bookingData = {
+            customerName: customerName,
+            customerEmail: customerEmail,
+            tourType: tourType,
+            tourDate: tourDate,
+            price: totalPrice
+        };
+        
+        // Call new API endpoint
+        const response = await fetch('/api/booking/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(bookingData)
         });
         
         const result = await response.json();
         
-        if (!response.ok) {
+        if (!response.ok || !result.success) {
             throw new Error(result.message || 'Booking failed');
         }
         
-        // Handle response
-        if (result.checkoutUrl) {
-            // Pay Now - redirect to Stripe
-            window.location.href = result.checkoutUrl;
-        } else if (result.bookingId) {
+        // Booking created successfully with PENDING status
+        const booking = result.booking;
+        
+        // Handle payment flow
+        if (paymentOption === 'pay_now') {
+            // TODO: Integrate payment gateway (Stripe/PayPal) here
+            // For now, show success and note that payment is pending
+            closeBookingModal();
+            showBookingSuccess(booking.bookingId, 'Payment pending - you will be redirected to payment page');
+        } else {
             // Pay After - show success modal
             closeBookingModal();
-            showBookingSuccess(result.bookingId);
-        } else {
-            throw new Error('Unexpected response from server');
+            showBookingSuccess(booking.bookingId);
         }
         
     } catch (error) {
@@ -315,8 +310,21 @@ async function handleBookingSubmit(e) {
 }
 
 // Show success modal
-function showBookingSuccess(bookingId) {
+function showBookingSuccess(bookingId, message = null) {
     document.getElementById('successBookingId').textContent = bookingId;
+    
+    // Update message if provided
+    if (message) {
+        const instructions = document.querySelector('.success-instructions');
+        if (instructions) {
+            const messageEl = document.createElement('p');
+            messageEl.style.color = '#4A90E2';
+            messageEl.style.fontWeight = 'bold';
+            messageEl.textContent = message;
+            instructions.insertBefore(messageEl, instructions.firstChild);
+        }
+    }
+    
     const modal = document.getElementById('bookingSuccessModal');
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';

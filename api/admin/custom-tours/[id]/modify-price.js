@@ -5,21 +5,9 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import nodemailer from 'nodemailer';
 import { withSentry, logError } from '../../../../utils/sentry.js';
-
-// Email transporter configuration
-const createTransporter = () => {
-    return nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: process.env.EMAIL_PORT || 587,
-        secure: false,
-        auth: {
-            user: process.env.EMAIL_USER || 'chilltours.official@gmail.com',
-            pass: process.env.EMAIL_PASS || process.env.EMAIL_APP_PASSWORD
-        }
-    });
-};
+import { sendCustomTourEmail } from '../../../../utils/customTourEmailTemplates.js';
+import { env } from '../../../../utils/env.js';
 
 async function handler(req, res) {
     // Set CORS headers
@@ -44,9 +32,8 @@ async function handler(req, res) {
     try {
         // Check admin authentication
         const adminEmail = req.query.email || req.headers['x-user-email'];
-        const expectedAdminEmail = process.env.ADMIN_EMAIL || 'chilltours.official@gmail.com';
 
-        if (!adminEmail || adminEmail !== expectedAdminEmail) {
+        if (!adminEmail || adminEmail !== env.SUPPORT_EMAIL) {
             return res.status(403).json({
                 success: false,
                 message: 'Unauthorized: Admin access required'
@@ -54,17 +41,7 @@ async function handler(req, res) {
         }
 
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Get tour ID from URL
         const tourId = req.query.id;
@@ -140,35 +117,21 @@ async function handler(req, res) {
         // Send price modification email
         if (userEmail) {
             try {
-                const transporter = createTransporter();
+                const { data: user } = await supabase
+                    .from('users')
+                    .select('name')
+                    .eq('id', tourRequest.userId)
+                    .maybeSingle();
+                
+                const userName = user?.name || userEmail.split('@')[0];
                 const newPriceUSD = (newPriceCents / 100).toFixed(2);
                 const priceChange = newPriceCents - oldPriceCents;
                 const priceChangeUSD = (Math.abs(priceChange) / 100).toFixed(2);
                 const isIncrease = priceChange > 0;
-
-                await transporter.sendMail({
-                    from: `"Chill Busan Tours" <${process.env.EMAIL_USER || 'chilltours.official@gmail.com'}>`,
-                    to: userEmail,
-                    subject: `Price Update for Your Custom Tour Request`,
-                    html: `
-                        <h2>Price Update for Your Custom Tour</h2>
-                        <p>Dear ${userEmail.split('@')[0]},</p>
-                        <p>We wanted to inform you that the price for your custom tour request (ID: ${tourId.substring(0, 8)}...) has been updated.</p>
-                        
-                        <h3>Price Details:</h3>
-                        <ul>
-                            <li><strong>Previous Price:</strong> $${oldPriceUSD} USD</li>
-                            <li><strong>New Price:</strong> $${newPriceUSD} USD</li>
-                            <li><strong>Change:</strong> ${isIncrease ? '+' : '-'}$${priceChangeUSD} USD</li>
-                        </ul>
-                        
-                        <p>You can view the updated price and proceed with payment in your dashboard:</p>
-                        <p><a href="${process.env.BASE_URL || 'https://chillbusantours.com'}/dashboard?tab=custom" style="display: inline-block; padding: 12px 24px; background: #4A90E2; color: white; text-decoration: none; border-radius: 8px; margin-top: 10px;">View in Dashboard</a></p>
-                        
-                        <p>If you have any questions about this price change, please don't hesitate to contact us.</p>
-                        <p>Best regards,<br>Chill Busan Tours Team</p>
-                    `
-                });
+                const reason = `Price updated: ${isIncrease ? 'increased' : 'decreased'} by $${priceChangeUSD} USD`;
+                
+                // Use custom tour email template (cancelled template with price change reason)
+                await sendCustomTourEmail(userEmail, 'cancelled', tourRequest, userEmail, userName, { reason });
             } catch (emailError) {
                 console.error('Error sending price modification email:', emailError);
                 // Don't fail the request if email fails

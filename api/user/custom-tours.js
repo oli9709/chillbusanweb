@@ -6,6 +6,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { withSentry, logError } from '../../utils/sentry.js';
+import { env } from '../../utils/env.js';
 
 async function handler(req, res) {
     // Set CORS headers
@@ -29,17 +30,7 @@ async function handler(req, res) {
 
     try {
         // Initialize Supabase
-        const supabaseUrl = process.env.SUPABASE_URL;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceKey) {
-            return res.status(500).json({
-                success: false,
-                message: 'Server configuration error: Supabase credentials missing'
-            });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
 
         // Get user ID from query params or headers
         const userId = req.query.userId || req.headers['x-user-id'];
@@ -69,9 +60,12 @@ async function handler(req, res) {
             });
         }
 
-        // Return empty array if no tours found
+        // Return consistent JSON format
         if (!customTours || customTours.length === 0) {
-            return res.status(200).json([]);
+            return res.status(200).json({
+                success: true,
+                customTours: []
+            });
         }
 
         // Format response with itinerary preview
@@ -99,7 +93,10 @@ async function handler(req, res) {
             };
         });
 
-        return res.status(200).json(formattedTours);
+        return res.status(200).json({
+            success: true,
+            customTours: formattedTours
+        });
 
     } catch (error) {
         console.error('Get custom tours error:', error);

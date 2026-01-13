@@ -6,99 +6,202 @@
     <title>Sign In - Chill Busan Tours</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
     <style>
-        .auth-container {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
             min-height: 100vh;
+            background: #0a0a0a;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #4A90E2 0%, #65C7D0 100%);
             padding: 20px;
         }
-        .auth-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 450px;
+
+        .auth-container {
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 420px;
         }
+
+        .auth-card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 48px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
         .auth-logo {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
+
         .auth-logo h1 {
             font-family: 'Lora', serif;
             font-size: 2rem;
-            color: #4A90E2;
+            color: #ffffff;
             margin: 0;
+            font-weight: 600;
+            letter-spacing: -0.5px;
         }
+
         .auth-form .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
+
         .auth-form label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
+            font-weight: 500;
+            color: #e0e0e0;
             font-size: 0.9rem;
         }
+
         .auth-form input {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
+            padding: 14px 16px;
+            background: #0f0f0f;
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 10px;
             font-size: 1rem;
-            transition: all 0.3s ease;
-            box-sizing: border-box;
+            color: #ffffff;
+            transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif;
         }
+
         .auth-form input:focus {
             outline: none;
             border-color: #4A90E2;
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+            background: #141414;
         }
+
+        .auth-form input::placeholder {
+            color: #666;
+        }
+
         .auth-submit {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #4A90E2, #65C7D0);
+            padding: 16px;
+            background: #4A90E2;
             color: white;
             border: none;
             border-radius: 10px;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
+            transition: all 0.2s ease;
+            margin-top: 8px;
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .auth-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.3);
+
+        .auth-submit:hover:not(:disabled) {
+            background: #3a7bc8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
         }
+
+        .auth-submit:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
         .auth-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
+
+        .auth-submit .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        .auth-submit.loading .spinner {
+            display: block;
+        }
+
+        .auth-submit.loading .btn-text {
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         .auth-links {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 24px;
             font-size: 0.9rem;
         }
+
+        .auth-links p {
+            margin-bottom: 12px;
+            color: #999;
+        }
+
         .auth-links a {
             color: #4A90E2;
             text-decoration: none;
             font-weight: 500;
+            transition: color 0.2s ease;
         }
+
         .auth-links a:hover {
+            color: #65C7D0;
             text-decoration: underline;
         }
+
         .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 24px;
             font-size: 0.9rem;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .forgot-password-link {
+            color: #4A90E2;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .forgot-password-link:hover {
+            color: #65C7D0;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 36px 28px;
+            }
+
+            .auth-logo h1 {
+                font-size: 1.75rem;
+            }
         }
     </style>
 </head>
@@ -114,21 +217,39 @@
             <form class="auth-form" id="login-form">
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        required 
+                        autofocus
+                        placeholder="your@email.com"
+                        autocomplete="email"
+                    >
                 </div>
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                    >
                 </div>
 
                 <button type="submit" class="auth-submit" id="submit-btn">
-                    Sign In
+                    <span class="spinner"></span>
+                    <span class="btn-text">Sign In</span>
                 </button>
             </form>
 
             <div class="auth-links">
-                <p><a href="#" id="forgot-password-link">Forgot password?</a></p>
+                <p>
+                    <a href="#" id="forgot-password-link" class="forgot-password-link">Forgot password?</a>
+                </p>
                 <p>Don't have an account? <a href="signup.html">Sign up</a></p>
             </div>
         </div>
@@ -137,55 +258,187 @@
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="src/utils/supabase.js"></script>
+    <script src="utils/authGuard.js"></script>
+    <script src="utils/toast.js"></script>
     <script>
+        // Initialize toast
+        initToast();
+
+        // Redirect if already logged in - with retry logic
+        (async () => {
+            // Wait for DOM and scripts to load
+            if (document.readyState === 'loading') {
+                await new Promise(resolve => {
+                    document.addEventListener('DOMContentLoaded', resolve);
+                });
+            }
+
+            // Wait for Supabase to initialize (with retries)
+            let retries = 0;
+            const maxRetries = 10;
+            
+            while (retries < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                // Check if Supabase is ready
+                if (typeof window.supabaseAuth !== 'undefined' && window.supabaseAuth.getSupabase) {
+                    const supabase = window.supabaseAuth.getSupabase();
+                    if (supabase && supabase.auth) {
+                        // Check session directly
+                        try {
+                            const { data: { session }, error } = await supabase.auth.getSession();
+                            
+                            if (!error && session && session.user) {
+                                // User is already logged in - redirect immediately
+                                window.location.replace('/dashboard.html');
+                                return;
+                            }
+                        } catch (err) {
+                            console.log('Session check error:', err);
+                        }
+                        break; // Supabase is ready, exit retry loop
+                    }
+                }
+                
+                retries++;
+            }
+            
+            // Also try using authGuard if available
+            if (window.authGuard) {
+                try {
+                    const redirected = await window.authGuard.redirectIfAuthenticated('/dashboard.html');
+                    if (redirected) return;
+                } catch (err) {
+                    console.log('Auth guard redirect error:', err);
+                }
+            }
+        })();
 
         const form = document.getElementById('login-form');
         const errorDiv = document.getElementById('error-message');
         const submitBtn = document.getElementById('submit-btn');
         const forgotPasswordLink = document.getElementById('forgot-password-link');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+
+        // Human-readable error messages
+        function getErrorMessage(error) {
+            const errorMessage = error?.message || '';
+            
+            if (errorMessage.includes('Invalid login credentials') || 
+                errorMessage.includes('Email not confirmed') ||
+                errorMessage.includes('Invalid email or password')) {
+                return 'Invalid email or password. Please check your credentials and try again.';
+            }
+            
+            if (errorMessage.includes('User not found')) {
+                return 'No account found with this email. Please sign up first.';
+            }
+            
+            if (errorMessage.includes('Too many requests')) {
+                return 'Too many login attempts. Please wait a moment and try again.';
+            }
+            
+            if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+                return 'Network error. Please check your connection and try again.';
+            }
+            
+            return errorMessage || 'An error occurred. Please try again.';
+        }
 
         function showError(message) {
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
+            errorDiv.classList.add('show');
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
+        function hideError() {
+            errorDiv.style.display = 'none';
+            errorDiv.classList.remove('show');
+        }
+
+        function setLoading(loading) {
+            if (loading) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('loading');
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
+        }
+
+        // Handle form submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            hideError();
             
-            const formData = new FormData(form);
-            const email = formData.get('email');
-            const password = formData.get('password');
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Signing In...';
+            if (!email || !password) {
+                showError('Please enter both email and password.');
+                return;
+            }
+
+            setLoading(true);
 
             try {
+                // Check if already logged in before attempting login
+                if (typeof window.supabaseAuth !== 'undefined' && window.supabaseAuth.getSupabase) {
+                    const supabase = window.supabaseAuth.getSupabase();
+                    if (supabase && supabase.auth) {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (session && session.user) {
+                            // Already logged in - redirect
+                            setLoading(false);
+                            window.location.replace('/dashboard.html');
+                            return;
+                        }
+                    }
+                }
+
                 const { data, error } = await window.supabaseAuth.signIn(email, password);
 
                 if (error) {
-                    showError(error.message || 'Invalid email or password. Please try again.');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Sign In';
+                    const errorMsg = getErrorMessage(error);
+                    showError(errorMsg);
+                    setLoading(false);
                     return;
                 }
 
-                // Redirect to dashboard or previous page
+                // Success - redirect to dashboard or previous page
                 const urlParams = new URLSearchParams(window.location.search);
-                const redirect = urlParams.get('redirect') || 'dashboard.html';
-                window.location.href = redirect;
+                const redirect = urlParams.get('redirect') || '/dashboard.html';
+                
+                // Use replace to prevent back button issues
+                window.location.replace(redirect);
             } catch (error) {
-                showError(error.message || 'An error occurred. Please try again.');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Sign In';
+                const errorMsg = getErrorMessage(error);
+                showError(errorMsg);
+                setLoading(false);
             }
         });
 
+        // Handle forgot password
         forgotPasswordLink.addEventListener('click', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            hideError();
+            
+            const email = emailInput.value.trim();
             
             if (!email) {
-                showError('Please enter your email address first');
+                showError('Please enter your email address first.');
+                emailInput.focus();
+                return;
+            }
+
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('Please enter a valid email address.');
+                emailInput.focus();
                 return;
             }
 
@@ -193,14 +446,25 @@
                 const { error } = await window.supabaseAuth.resetPassword(email);
                 
                 if (error) {
-                    showError(error.message || 'Failed to send reset email');
+                    showError(getErrorMessage(error));
                 } else {
-                    showError('Password reset email sent! Please check your inbox.');
+                    showError('Password reset email sent! Please check your inbox and spam folder.');
                 }
             } catch (error) {
                 showError('An error occurred. Please try again.');
             }
         });
+
+        // Enter key submits form
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !submitBtn.disabled) {
+                form.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Clear error when user starts typing
+        emailInput.addEventListener('input', hideError);
+        passwordInput.addEventListener('input', hideError);
     </script>
 </body>
 </html>

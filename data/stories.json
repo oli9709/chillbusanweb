@@ -1,5 +1,26 @@
 [
   {
+    "id": 5,
+    "date": "2025-12-20",
+    "tour": "Busan Hidden Gems, Beaches & Local Food",
+    "photos": [
+      "/images/stories/daytour8.jpg",
+      "/images/stories/daytour8.1.jpg"
+    ],
+    "caption": "Happy guests, real experiences 🇩🇪💙\n\nOne more memorable day touring Busan together."
+  },
+  {
+    "id": 4,
+    "date": "2025-12-17",
+    "tour": "Busan Hidden Gems, Beaches & Local Food",
+    "photos": [
+      "/images/stories/daytour5.jpg",
+      "/images/stories/daytour6.jpg",
+      "/images/stories/daytour7.jpg"
+    ],
+    "caption": "Amazing day exploring Busan's hidden gems! From stunning beaches to vibrant local markets, our guests experienced the best of Busan with beautiful views and authentic Korean food. 🌊🏖️🍜"
+  },
+  {
     "id": 3,
     "date": "2025-10-29",
     "tour": "Nightclub Crawl",
@@ -9,7 +30,7 @@
     "videos": [
       "/images/stories/nightclub1.gif"
     ],
-    "caption": "Nightclub Tour with Dilak 🇩🇪\nAt first, she was a little nervous — worried that going alone might be boring. But just one hour later, the music, lights, and new friends turned everything around! 🎶\nBy the end of the night, she said it was one of her best memories in Busan. 💃\nThank you, Dilak, for trusting us and joining the Chill Busan Nightclub Tour!"
+    "caption": "Nightclub Tour with Dilak 🇩🇪\n\nFrom nervous to unforgettable — one of her best nights in Busan 💃✨"
   },
   {
     "id": 1,

@@ -176,6 +176,16 @@
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="src/utils/supabase.js"></script>
+    <script src="utils/authGuard.js"></script>
+    <script>
+        // Redirect if already logged in
+        (async () => {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            if (window.authGuard) {
+                await window.authGuard.redirectIfAuthenticated('/dashboard.html');
+            }
+        })();
+    </script>
     <script>
 
         const form = document.getElementById('signup-form');
